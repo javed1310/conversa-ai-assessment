@@ -2,6 +2,7 @@
 
 import re
 
+from app.budgets import budget_is_supported
 from app.phones import normalize_phone, phone_is_supported
 
 FIELD_WORDS = {
@@ -28,17 +29,7 @@ def supports_value(field: str, value: object, excerpt: str) -> bool:
     if field == "phone":
         return phone_is_supported(value, excerpt)
     if field == "budget":
-        for token, unit in re.findall(
-            r"(?<![\w.])([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?)\s*(k|thousand|lakh)?\b",
-            excerpt.casefold(),
-        ):
-            amount = (
-                float(token.replace(",", ""))
-                * {"": 1, "k": 1000, "thousand": 1000, "lakh": 100000}[unit]
-            )
-            if amount == value:
-                return True
-        return False
+        return budget_is_supported(value, excerpt)
     if field == "schedule":
         categories = set()
         for clause in re.split(r"[.!?;,]|\b(?:and|but|instead)\b", excerpt.casefold()):

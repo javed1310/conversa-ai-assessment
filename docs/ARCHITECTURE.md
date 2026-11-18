@@ -64,4 +64,6 @@ flowchart TD
 
 8. Registered business behaviors isolate course dialogue from the shared engine. Optional evidence-linked wording is reviewed before display, with verified factual/receipt fallbacks. Classified transient failures allow only bounded safe recovery; unresolved write uncertainty is not blindly retried.
 
+Budget proposals and source evidence use the same numeric normalization. Search lists preserve server-owned ordering through final rendering, so ordinal selections refer to the displayed courses. Acknowledgements of preference changes require a saved change from the current customer turn.
+
 Mongo holds scoped business records, sessions, turns, lead/events, documents/chunks and execution records. Configuration remains file-authoritative. There is no real external messaging/CRM delivery or payment/enrollment integration. See [extensions](EXTENDING.md), [decisions](DECISIONS.md) and [limitations](LIMITATIONS.md).

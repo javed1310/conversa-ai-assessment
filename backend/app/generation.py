@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, ValidationError, model_validator
 
+from app.budgets import normalize_budget
 from app.contracts import (
     Content,
     Contract,
@@ -370,7 +371,7 @@ class GenerationService:
                     raise ProviderFailure("INVALID_STRUCTURED_OUTPUT")
                 if change.field == "budget":
                     try:
-                        values[change.field] = float(value)
+                        values[change.field] = normalize_budget(value)
                     except ValueError:
                         raise ProviderFailure("INVALID_STRUCTURED_OUTPUT") from None
                 elif change.field == "phone":

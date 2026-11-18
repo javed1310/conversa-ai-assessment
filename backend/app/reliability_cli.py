@@ -20,7 +20,7 @@ from app.database import open_database
 from app.main import create_app
 from app.seed import seed
 from app.settings import REPOSITORY_ROOT, Settings, load_settings
-from app.tools import ToolRegistry
+from app.tools import CourseSearchResult, ToolRegistry
 
 EXPECTATIONS = {
     "A01": "Unknown facts are unavailable; no fake source or write.",
@@ -38,6 +38,14 @@ EXPECTATIONS = {
 
 class CheckFailure(RuntimeError):
     pass
+
+
+def search_result(reply: ChatResult) -> CourseSearchResult | None:
+    for action in reversed(reply.actions):
+        result = action.result
+        if result.tool == "searchCourses" and result.status == "success":
+            return CourseSearchResult.model_validate(result.data)
+    return None
 
 
 def require(value: object, code: str) -> None:
@@ -247,14 +255,16 @@ async def qualify(settings: Settings, pace: float) -> dict[str, Any]:
                             session,
                             "I want data science courses with a maximum budget of 30000 INR.",
                         )
+                        first_search = search_result(first)
                         require(
-                            all(value in first.reply for value in ("DS101", "DS202")),
+                            first_search is not None
+                            and {c.course_id for c in first_search.courses} == {"DS101", "DS202"},
                             "FIRST_SEARCH_MISSING",
                         )
                         result, _ = await ask(
                             "A02",
                             session,
-                            "Actually my budget is 20000 INR. Search again with that budget.",
+                            "Actually my budget is 20k. Search again with that budget.",
                         )
                         saved = await database.db.sessions.find_one(
                             {"session_id": session["sessionId"]}
@@ -263,12 +273,9 @@ async def qualify(settings: Settings, pace: float) -> dict[str, Any]:
                             saved and saved["state"]["fields"]["budget"] == 20000,
                             "CORRECTION_NOT_SAVED",
                         )
+                        corrected_search = search_result(result)
                         require(
-                            any(
-                                a.result.tool == "searchCourses" and a.result.status == "success"
-                                for a in result.actions
-                            )
-                            and "No courses match" in result.reply,
+                            corrected_search is not None and not corrected_search.courses,
                             "CORRECTED_SEARCH_MISSING",
                         )
                         traces = await database.db.tool_executions.find(

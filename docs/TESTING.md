@@ -21,11 +21,12 @@ Windows. Expected and observed results:
 | Check | Expected | Actual |
 |---|---|---|
 | Backend lint/format/strict types/contracts | Pass | Pass |
-| Backend test suite | All tests pass | 847 passed |
+| Backend test suite | All tests pass | 882 passed |
 | Frontend API/validator/proxy checks | All checks pass | 26 passed |
 | React component interaction tests | All tests pass | 18 passed |
 | Browser integration | All checks pass; no JavaScript exceptions | 22 passed |
 | Frontend lint/types and production build | Pass | Pass |
+| Actual Gemini assessment scenarios | All ten behaviors pass | 10 passed |
 
 The frontend was installed from its lockfile using `npm ci`. The installed backend
 environment was reused while importing this checkout's source. These are host
@@ -40,7 +41,7 @@ assistant wording is not the criterion.
 | Scenario | Expected | Actual |
 |---|---|---|
 | Outside knowledge base | Explain that information is unavailable; invent no source | Pass |
-| Budget correction | Store the revised preference and use it in the next search | Pass |
+| Budget correction, including 20k | Store 20000 and use it in the next search; do not reuse the old 30000 limit | Pass |
 | Callback without valid phone | Ask for contact details; create no lead/callback | Pass |
 | Lead save fails | Report failure and do not request a callback or claim success | Pass |
 | Same message twice | Reuse saved effects; avoid duplicate leads, callbacks and events | Pass |
@@ -53,7 +54,11 @@ assistant wording is not the criterion.
 Tests are under `backend/tests`. Gateway/mock tests exercise channel routing;
 state/action tests exercise provenance, corrections and qualification; knowledge
 and policy tests exercise retrieval and sources; automation tests exercise failure
-and duplicate-event handling. A reference chunker under `backend/tests/fixtures`
+and duplicate-event handling. `test_assessment_corrections.py` covers raw shorthand model values, invalid amount
+proof, next-search behavior, a reversed conversational draft, current-turn state
+acknowledgements and receipt-based live assertions. Live search checks inspect
+validated tool data and stored state rather than requiring particular English
+phrases or course IDs in reply text. A reference chunker under `backend/tests/fixtures`
 is a regression input, not application knowledge.
 
 ## Component and browser coverage
@@ -91,5 +96,5 @@ in owned temporary databases and runs the ten scenarios. It records expected and
 actual responses/actions in `docs/results/live-scenarios.json` and cleans its
 owned databases. It never reads existing application customer records. Generated
 reports are ignored by Git. Model accuracy and latency vary; deterministic tests
-are not a guarantee of every future live reply. No new live-provider run is claimed
-by the recorded publication checks above.
+are not a guarantee of every future live reply. The recorded live check on 18 November 2026 passed all ten scenarios; it is a
+scoped observation, not a guarantee of future model responses or quota.
