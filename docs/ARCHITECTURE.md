@@ -105,3 +105,26 @@ Document presentation distinguishes an explicit unknown-price disclaimer from a
 price assertion. A paragraph stating that fees are not established can retain its
 independent access rules; price assertions (including zero-price claims) remain
 excluded. Source span verification and coupled policy conditions still apply.
+
+## Accepted-state dialogue acknowledgements
+
+Pure preference replies use current-turn accepted state provenance, rather than
+requiring another course lookup or a successful wording proposal. A selection-only
+acknowledgement names the actual owned course without asserting current prices,
+schedules or availability. Bare ordinal detail replies retain their checked-read
+path. Mixed questions, contact changes and write requests do not take this path.
+Changing courses invalidates an earlier enquiry offer; it does not carry the old
+consent to another course. Existing saved enquiries retain their original snapshot.
+
+Whole-message neutral closings do not invoke business tools. Owned offer acceptance
+continues through the qualification/consent workflow; an unprompted yes does not
+acquire write authority. A context-derived proposal repeating the same course ID
+may be discarded as a no-op only when its excerpt is present or whitespace-equivalent
+to the customer message. It is not accepted as new provenance; changed IDs,
+fabricated excerpts and other unsupported fields still fail validation.
+
+Sufficient course-detail reads can finish after a bounded semantic field selection,
+without another planner/wording cycle. Mixed policy/action questions and mismatched
+references do not qualify. Existing literal schedule confirmation retains its
+no-extra-model fallback. Customer replies suppress document-authoring directives
+while preserving source text and policy conditions.

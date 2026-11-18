@@ -21,7 +21,7 @@ Windows. Expected and observed results:
 | Check | Expected | Actual |
 |---|---|---|
 | Backend lint/format/strict types/contracts | Pass | Pass |
-| Backend test suite | All cases pass | Latest full run: 1009 passed, 1 temporary-database setup error; affected case passed on isolated rerun (1010 cases covered) |
+| Backend test suite | All cases pass | 1022 passed in a clean run |
 | Frontend API/validator/proxy checks | All checks pass | 26 passed |
 | React component interaction tests | All tests pass | 18 passed |
 | Browser integration | All checks pass; no JavaScript exceptions | 22 passed |
@@ -159,7 +159,7 @@ New controlled regressions cover absent/invented budgets, the `maxBudget` alias,
 contextual-budget search evidence, semantic schedule reassurance, document limits
 and price-claim exclusion, and end-to-end new-document answering/citation.
 
-The latest full submission suite reported 1009 passes and one setup error while
+A preceding submission verification reported 1009 passes and one setup error while
 opening a disposable MongoDB test database (`DatabaseStartupError`), before the
 affected test's assertions ran. That case passed on an isolated rerun with the
 16 new/related regression checks (17 passed). An earlier overlapping workspace
@@ -169,3 +169,63 @@ local evidence and are not counted as successful first-run assertions. No retry
 was added to production database code or test assertions to hide the errors.
 The 22 browser checks, 26 frontend API checks, 18 component tests, frontend build,
 lint, strict types and contract consistency checks passed separately.
+
+## Historical manual-conversation regressions
+
+An expanded local evaluation reconstructed 82 turns across 14 historical paths,
+using actual Gemini and fresh repository embeddings in disposable databases. Only
+contact names/numbers were replaced with fictional values. The reviewed pre-fix
+result was 74 passed, four primary failures, three downstream failures and one
+ambiguous follow-up. The post-fix reviewed result was 82/82, with a separate
+nine-turn live check of the final owned-offer, contact, clarification and callback
+boundaries. This checks the backend web-chat gateway through ASGI, not a live
+browser transcript. Browser behavior is checked separately.
+
+The raw post-fix runner initially flagged a selection-only acknowledgement because
+it expected a new details lookup. Review checked the actual prior ordered search
+receipt, owned reference resolution and saved DS202 selection: the reply asserted
+only the selected course and offered an enquiry, with no current-price/schedule
+claim. This is valid without another details read. That expectation correction is
+recorded alongside the untouched local raw report. The dedicated regression covers
+this distinction. Raw transcripts/audit traces are kept out of the public repo.
+
+Reproducible controlled cases are in `backend/tests/test_manual_replay_regressions.py`:
+
+| Historical input / boundary | Expected and verified behavior |
+|---|---|
+| I prefer weekends | Acknowledge accepted schedule and offer the owned enquiry |
+| i would prefer the second one | Resolve the displayed option and confirm actual selection |
+| okay perfect / neutral closing | No unnecessary model/tool calls or write receipts |
+| i want toenquire about it | Collect contact details without accepting an unproven course change |
+| Changed course after an offer | Invalidate old offer; do not retarget its acceptance |
+| Fabricated facts / mixed policy question | Retain provenance checks and do not swallow the question |
+| why after a successful saved enquiry | Ask a relevant clarification without claiming a failure |
+| If asked, say ... in a document | Keep policy meaning; omit authoring instructions from the reply |
+| Multi-field course reference | Finish on a sufficient validated read; avoid redundant planning |
+
+Live timing depends on the provider. Neutral server-owned replies do not need an
+AI call. Evaluations pace provider-consuming turns and omit deliberate waiting from
+per-turn durations. No universal language-accuracy or latency guarantee is implied.
+
+## Latest manual-replay fixes
+
+A clean final backend run passed **1022 tests with no failures, errors or skips**.
+The affected turn-context/offer-invalidation/reference/response tests were also
+checked separately. Neutral acknowledgements need at most one extraction call;
+recognized whole-message closings need none. The controlled model fixture now
+handles the separate nullable field-classifier schema without consuming queued
+planner calls, so duplicate-planner tests continue to test the real round budget.
+
+The revised historical replay passed **82/82 reviewed turns**. A selection-only
+acknowledgement was verified against its owning search order and resolved state;
+it need not perform a new details lookup when no current facts are asserted.
+A separate nine-turn actual-Gemini check verified the final neutral-closing,
+owned-offer, qualification, clarification and callback boundaries. Its lead and
+callback were real local operations in a disposable database. All evaluation
+databases were removed; existing customer records were not used.
+
+The longest replay turn was 9.75 seconds versus 35.17 seconds before the fixes.
+The overall median includes local state/receipt replies and is not an AI latency
+benchmark. Provider timing remains variable. Evaluation pacing was retained around
+provider-consuming turns; deliberate pacing is excluded from response duration.
+Raw replay logs and traces remain private, outside the public submission.

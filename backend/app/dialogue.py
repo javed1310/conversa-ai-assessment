@@ -6,6 +6,46 @@ from typing import Literal
 NextStep = Literal["none", "offer_enquiry", "collect_enquiry", "offer_callback", "clarify_course"]
 
 
+def literal_schedule_confirmation(text: str) -> bool:
+    return (
+        re.fullmatch(
+            r"\s*(?:are you (?:sure|certain)|can you confirm|could you confirm|please confirm)"
+            r"(?:\s+that)?\s+(?:it|this course|that course)\s+"
+            r"(?:runs?|is (?:held|scheduled)|has (?:classes|batches))\s+on\s+"
+            r"(?:the\s+)?(?:weekends?|weekdays?)\s*[?.!]*\s*",
+            text,
+            re.I,
+        )
+        is not None
+    )
+
+
+def social_closing(text: str) -> bool:
+    """Whole-message neutral closings only; never classify a mixed request as social."""
+    word = (
+        r"(?:ok(?:ay)?|thanks|thank you|great|perfect|got it|understood|alright|fine|sounds good)"
+    )
+    return bool(
+        re.fullmatch(r"\s*" + word + r"(?:[\s,!.]+" + word + r"){0,3}\s*[.!]*\s*", text, re.I)
+    )
+
+
+def preference_acknowledgement_candidate(text: str) -> bool:
+    """Exclusion gate for already accepted state events, not authority to infer facts."""
+    return (
+        re.search(
+            r"[?\"`]|\d{6,}|\b(and|also|but|however|what|why|how|when|where|which|"
+            r"if|unless|not|never|don't|fees?|prices?|costs?|availability|available|"
+            r"refund|polic\w*|prerequisites?|eligib\w*|syllabus|instructors?|"
+            r"jobs?|placements?|guarantee\w*|tell|explain|compare|"
+            r"callback|call|save|create|phone|name|ignore|override)\b|enquir|inquir|enrol|register",
+            text,
+            re.I,
+        )
+        is None
+    )
+
+
 def safe_discussion_choice(text: str) -> bool:
     """Independent exclusions for a reviewed proposal; this is not an intent classifier."""
     return not bool(

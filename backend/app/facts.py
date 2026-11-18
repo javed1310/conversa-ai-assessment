@@ -177,6 +177,19 @@ def policy_reply(text: str, question: str) -> str:
         and not re.match(r"This (?:is a fictional|fictional .*assessment)", paragraph.strip(), re.I)
     ]
     answer = "\n\n".join(paragraphs)
+
+    def customer_statement(match: re.Match[str]) -> str:
+        statement = match.group("statement").strip()
+        return " " + statement[:1].upper() + statement[1:]
+
+    answer = re.sub(
+        r"(?:^|(?<=[.!?])\s+)If asked,\s*"
+        r"(?:say|explain|tell\s+(?:them|the customer))\s+(?:that\s+)?"
+        r"(?P<statement>[^.!?]+[.!?]?)",
+        customer_statement,
+        answer,
+        flags=re.I,
+    )
     answer = re.sub(r"\*\*([^*]+)\*\*", r"\1", answer)
     answer = re.sub(r"`([^`]+)`", r"\1", answer)
     answer = re.sub(r"\bA customer should\b", "You should", answer)

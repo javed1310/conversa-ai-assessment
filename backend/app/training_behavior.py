@@ -34,8 +34,11 @@ from app.dialogue import (
     decline,
     enrollment_process_candidate,
     expresses_discussed_interest,
+    literal_schedule_confirmation,
     post_enquiry_question_candidate,
+    preference_acknowledgement_candidate,
     safe_discussion_choice,
+    social_closing,
     starts_discussed_enquiry,
 )
 from app.facts import (
@@ -558,6 +561,75 @@ class TrainingBehavior(BusinessBehavior):
                 await state_service.record_callback_intent(context, turn.input_text)
         return await state_service.view(context)
 
+    async def _preference_response(
+        self,
+        context: ExecutionContext,
+        service: StateService,
+        state: CustomerState,
+        work: TurnWork,
+        dialogue: TurnDialogue,
+    ) -> ChatResult | None:
+        if (
+            dialogue.pending.next_step not in {"none", "offer_enquiry"}
+            or bare_course_selection(dialogue.turn.input_text)
+            or work.enquiry_request is not None
+            or not preference_acknowledgement_candidate(dialogue.turn.input_text)
+            or any(a.result.tool in WRITE_TOOLS for a in work.actions)
+        ):
+            return None
+        updated = {
+            field
+            for field, proof in state.provenance.items()
+            if proof.turn_id == dialogue.turn.turn_id
+        }
+        if not updated.intersection({"course_id", "schedule"}) or updated.intersection(
+            {"name", "phone", "budget", "stated_interest"}
+        ):
+            return None
+        pieces = []
+        if "schedule" in updated and state.fields.schedule is not None:
+            pieces.append(f"Noted — you prefer {state.fields.schedule} classes.")
+        course = (
+            await service.repo.course(state.fields.course_id) if state.fields.course_id else None
+        )
+        if "course_id" in updated and course is not None:
+            pieces.append(f"You've selected {course.name}.")
+        if not pieces:
+            return None
+        existing = await LeadActions(service.repo).existing(context)
+        business = self.businesses.get(context.business_id)
+        if existing is not None:
+            if existing.customer.model_dump() != state.fields.model_dump():
+                pieces.append(
+                    "Your saved enquiry retains its original details. These changes "
+                    "have not updated or cancelled that record or callback."
+                )
+        elif (
+            course is not None
+            and business is not None
+            and "createLead" in business.enabled_tools
+            and not (
+                dialogue.pending.next_step == "offer_enquiry"
+                and dialogue.pending.course_id != course.course_id
+            )
+        ):
+            work.next_step = "offer_enquiry"
+            work.dialogue_course_id = course.course_id
+            pieces.append(f"Would you like to enquire about {course.name}?")
+        if state.selection_conflicts:
+            pieces.append(
+                "Your selected course conflicts with your current preferences or "
+                "availability (" + ", ".join(state.selection_conflicts) + "). "
+                "An enquiry does not reserve a seat or confirm enrolment."
+            )
+        work.response_locked = True
+        return ChatResult(
+            message_id=dialogue.turn.message_id,
+            session_id=context.session_id,
+            reply=" ".join(pieces),
+            actions=tuple(work.actions),
+        )
+
     def _social_response(
         self, context: ExecutionContext, work: TurnWork, dialogue: TurnDialogue
     ) -> ChatResult | None:
@@ -716,6 +788,83 @@ class TrainingBehavior(BusinessBehavior):
         dialogue: TurnDialogue,
     ) -> ChatResult | None:
         state = await service.view(context)
+        preference = await self._preference_response(context, service, state, work, dialogue)
+        if preference is not None:
+            return preference
+        details = [
+            item
+            for item in work.evidence
+            if item.action is not None
+            and item.action.result.tool == "getCourseDetails"
+            and item.action.result.status == "success"
+        ]
+        if (
+            len(details) == 1
+            and work.actions
+            and not re.search(
+                r"\b(refund|polic\w*|eligib\w*|prerequisites?|experience|syllabus|"
+                r"instructors?|jobs?|placements?|discounts?|callback|call|save|create|"
+                r"phone|enrol\w*|register|compare)\b|enquir|inquir",
+                dialogue.turn.input_text,
+                re.I,
+            )
+            and all(
+                a.result.tool == "getCourseDetails" and a.result.status == "success"
+                for a in work.actions
+            )
+            and all(op in {"getCourseDetails", "resolveCourseReference"} for op in work.operations)
+        ):
+            action = details[0].action
+            assert action is not None and action.result.status == "success"
+            receipt = CourseDetailsResult.model_validate(action.result.data)
+            other_named = any(
+                course.course_id != receipt.course.course_id
+                and any(
+                    re.search(r"\b" + re.escape(value) + r"\b", dialogue.turn.input_text, re.I)
+                    for value in (course.course_id, course.name)
+                )
+                for course in await service.repo.courses()
+            )
+            if not other_named:
+                try:
+                    if literal_schedule_confirmation(dialogue.turn.input_text):
+                        focus = (
+                            work.resolved_reference
+                            or work.discussed_course_id
+                            or state.fields.course_id
+                        )
+                        question = (
+                            CourseQuestion(
+                                course_id=receipt.course.course_id,
+                                fields=("schedule",),
+                                excerpt=dialogue.turn.input_text.strip(),
+                                confirmation=True,
+                            )
+                            if focus == receipt.course.course_id
+                            else None
+                        )
+                    else:
+                        question = await self.generation.select_course_question(
+                            dialogue.turn.input_text, receipt.course.course_id
+                        )
+                except ProviderFailure:
+                    question = None
+                if question is not None:
+                    return await self._assemble(
+                        context,
+                        service,
+                        state,
+                        ReplySelection(
+                            kind="evidence",
+                            course_use="fields",
+                            course_fields=question.fields,
+                            confirmation=question.confirmation,
+                            evidence_keys=(details[0].key,),
+                            clarification="none",
+                        ),
+                        work,
+                        dialogue,
+                    )
         budget_proof = state.provenance.get("budget")
         contextual_search = (
             budget_proof is not None and budget_proof.turn_id == dialogue.turn.turn_id
@@ -877,6 +1026,13 @@ class TrainingBehavior(BusinessBehavior):
             )
             for code in dialogue.pending.failure_codes
         ):
+            if await LeadActions(service.repo).existing(context) is not None:
+                return ChatResult(
+                    message_id=dialogue.turn.message_id,
+                    session_id=context.session_id,
+                    reply="What would you like me to explain — why contact details are needed, "
+                    "or what happens next with your enquiry?",
+                )
             return None
         work.next_step = dialogue.pending.next_step
         work.dialogue_course_id = dialogue.pending.course_id
@@ -993,19 +1149,12 @@ class TrainingBehavior(BusinessBehavior):
         work: TurnWork,
         dialogue: TurnDialogue,
     ) -> ChatResult:
+        preference = await self._preference_response(context, service, state, work, dialogue)
+        if preference is not None:
+            return preference
         # A pure confirmation has a known field even if optional model cues
         # disappear. Authority still comes only from this turn's matching receipt.
-        schedule_confirmation = (
-            re.fullmatch(
-                r"\s*(?:are you (?:sure|certain)|can you confirm|could you confirm|please confirm)"
-                r"(?:\s+that)?\s+(?:it|this course|that course)\s+"
-                r"(?:runs?|is (?:held|scheduled)|has (?:classes|batches))\s+on\s+"
-                r"(?:the\s+)?(?:weekends?|weekdays?)\s*[?.!]*\s*",
-                dialogue.turn.input_text,
-                re.I,
-            )
-            is not None
-        )
+        schedule_confirmation = literal_schedule_confirmation(dialogue.turn.input_text)
         checked_course_id = work.resolved_reference or (
             work.discussed_course_id or state.fields.course_id
         )
@@ -1491,15 +1640,24 @@ class TrainingBehavior(BusinessBehavior):
         work.discussed_course_id = dialogue.pending.discussed_course_id
         # A completed callback is not an open offer. Handle only whole-message
         # social closings here; mixed questions and new requests still route normally.
-        if dialogue.pending.next_step in {"none", "offer_callback"} and re.fullmatch(
-            r"\s*(?:ok(?:ay)?|yes|thanks|thank you|great|perfect|got it|understood)"
-            r"(?:\s*[,!.]?\s*(?:thanks|thank you))?\s*[.!]*\s*",
-            dialogue.turn.input_text,
-            re.I,
-        ):
+        if dialogue.pending.next_step in {
+            "none",
+            "offer_enquiry",
+            "offer_callback",
+        } and (social_closing(dialogue.turn.input_text) or affirmation(dialogue.turn.input_text)):
             lead = await LeadActions(service.repo).existing(context)
-            if lead is not None and lead.callback_request_id is not None:
-                work.next_step = "none"
+            if (
+                (dialogue.pending.next_step == "none" and social_closing(dialogue.turn.input_text))
+                or (
+                    dialogue.pending.next_step in {"offer_enquiry", "offer_callback"}
+                    and not affirmation(dialogue.turn.input_text)
+                )
+                or (lead is not None and lead.callback_request_id is not None)
+            ):
+                work.next_step = dialogue.pending.next_step
+                work.dialogue_course_id = dialogue.pending.course_id
+                if lead is not None and lead.callback_request_id is not None:
+                    work.next_step = "none"
                 return PreparedTurn(
                     await service.view(context),
                     ChatResult(
@@ -1574,6 +1732,11 @@ class TrainingBehavior(BusinessBehavior):
                 await service.view(context),
                 advanced,
                 "clarify" if work.next_step != "none" else "evidence",
+            )
+        preference = await self._preference_response(context, service, state, work, dialogue)
+        if preference is not None:
+            return PreparedTurn(
+                state, preference, "clarify" if work.next_step == "offer_enquiry" else "social"
             )
         focused = await self._course_followup(context, service, state, work, dialogue)
         if focused is not None:

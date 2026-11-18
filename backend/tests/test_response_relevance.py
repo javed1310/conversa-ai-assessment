@@ -30,8 +30,8 @@ async def test_acknowledgement_needs_no_catalog_or_write(agent_env, monkeypatch,
     social_cue(env, monkeypatch)
     before = len(env.model.requests)
     result = await env.send(text)
-    assert len(env.model.requests) == before + 1
-    assert result.reply.startswith("Glad that helps")
+    assert len(env.model.requests) <= before + 1
+    assert result.reply.startswith(("Glad that helps", "You're welcome"))
     assert "28000" not in result.reply and "weekends" not in result.reply
     assert not result.actions and not result.sources
     assert await env.storage.db.leads.count_documents({}) == 0

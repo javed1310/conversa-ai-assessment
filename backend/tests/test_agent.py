@@ -58,6 +58,10 @@ class ScriptedModel:
                 if callable(self.policy_selection)
                 else self.policy_selection
             ) or {"passages": (self.selection or {}).get("policyPassages", [])}
+        elif title == "CourseQuestionSelection":
+            # A structured field classifier is not a planner tool round. Tests
+            # that need a positive cue supply it explicitly through the generation API.
+            body = {"question": None}
         elif title == "ReplySelection":
             if self.final_failure:
                 return httpx.Response(200, json=response([{"text": "malformed JSON"}]))
@@ -407,7 +411,7 @@ class TestAgent:
             steps=[[("getCourseDetails", {"courseID": "DS202"})]],
         )
         assert "28000" in details.reply and "28000" not in preference.reply
-        assert "fits your preference" in preference.reply
+        assert "weekend" in preference.reply and "enquire" in preference.reply
         assert "Would you like to enquire" in preference.reply
         assert await env.storage.db.leads.count_documents({}) == 0
         repo = Repository(env.storage, env.registry.get("training-institute"))
