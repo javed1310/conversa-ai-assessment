@@ -33,6 +33,7 @@ function BusinessWorkspace({
           business={business.businessId}
           businessName={business.businessName}
           role={business.agentRole}
+          starterQuestions={business.starterQuestions}
           onChange={() => setRevision((r) => r + 1)}
         />}
       </div>

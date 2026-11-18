@@ -8,6 +8,22 @@
     "Do not claim to create leads, request callbacks, take payments or enrol customers."
   ],
   "knowledgeBaseId": "fitness-studio-kb",
-  "enabledTools": ["getMembershipDetails"],
-  "configVersion": 1
+  "enabledTools": [
+    "getMembershipDetails"
+  ],
+  "configVersion": 1,
+  "starterQuestions": [
+    {
+      "title": "Explore memberships",
+      "message": "What membership options are available?"
+    },
+    {
+      "title": "Plan a trial visit",
+      "message": "How does an introductory trial visit work?"
+    },
+    {
+      "title": "Know the policies",
+      "message": "What should I know before visiting the studio?"
+    }
+  ]
 }

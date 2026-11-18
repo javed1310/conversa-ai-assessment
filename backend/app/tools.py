@@ -136,6 +136,18 @@ async def membership_details(
     return MembershipResult(memberships=members)
 
 
+def render_memberships(result: MembershipResult) -> str:
+    return (
+        "\n".join(
+            f"{member.name}: INR {member.fee:g} for {member.duration_months} months. "
+            f"{member.description}"
+            for member in result.memberships
+        )
+        if result.memberships
+        else "No matching membership was found."
+    )
+
+
 async def create_lead(
     repository: Repository, context: ExecutionContext, arguments: LeadInput
 ) -> LeadReceipt:
@@ -230,6 +242,8 @@ def build_tool_registry() -> ToolRegistry:
                 MembershipArguments,
                 MembershipResult,
                 membership_details,
+                presentation=render_memberships,
+                current_facts=True,
             ),
             ToolDefinition(
                 "createLead",

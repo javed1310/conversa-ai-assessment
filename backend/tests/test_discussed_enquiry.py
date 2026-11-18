@@ -56,7 +56,7 @@ async def test_procedural_start_collects_and_raw_contacts_save_without_model(age
     await recommend(env)
     before = len(env.model.requests)
     reply = await env.send("okay then how can i choose this course to start")
-    assert "Python Basics" in reply.reply and "name" in reply.reply and "mobile" in reply.reply
+    assert "Python Basics" in reply.reply and "name" in reply.reply and "phone" in reply.reply
     assert not reply.sources and not reply.actions
     env.model.fail_state = True
     result = await env.send("Audit Learner 9876543210")

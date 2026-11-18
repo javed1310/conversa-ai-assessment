@@ -1,51 +1,95 @@
-# Tests and recorded results
+# Testing
 
-Run from the repository root. Python dependencies and Mongo must be available; frontend checks require installed npm dependencies. Windows setup is in the [README](../README.md).
+## Run the complete local gate
+
+After setup, from the repository root:
 
 ```powershell
 powershell -NoProfile -File scripts/check.ps1
 ```
 
-The default suite substitutes model HTTP but exercises real scoped Mongo operations in owned disposable test databases. Expected: 760 backend tests and 26 frontend API/proxy checks pass; lint/types/contracts/build pass. [Recorded backend result](evidence/backend-final.xml), [frontend API result](evidence/frontend-api-final.json). Counts are qualification snapshots, not an employer score.
+With the installed Python environment, `python scripts/check.py` runs the same
+checks. MongoDB is required. The default suite uses controlled model responses
+and isolated disposable MongoDB databases; no Gemini key is needed. The frontend
+command `npm --prefix frontend test` runs both API checks and rendered components.
 
-## Optional actual Gemini qualification
+## Recorded results
 
-These commands consume generation/embedding quota. Use your own private key and run sequentially. New fictional documents are embedded in owned temporary databases; existing application customer records are not read/copied. The databases are removed in cleanup.
+Verification on 18 November 2026 used Python 3.12, Node 24 and local MongoDB on
+Windows. Expected and observed results:
+
+| Check | Expected | Actual |
+|---|---|---|
+| Backend lint/format/strict types/contracts | Pass | Pass |
+| Backend test suite | All tests pass | 847 passed |
+| Frontend API/validator/proxy checks | All checks pass | 26 passed |
+| React component interaction tests | All tests pass | 18 passed |
+| Browser integration | All checks pass; no JavaScript exceptions | 22 passed |
+| Frontend lint/types and production build | Pass | Pass |
+
+The frontend was installed from its lockfile using `npm ci`. The installed backend
+environment was reused while importing this checkout's source. These are host
+observations, not fresh-OS, load-test or cross-platform certification.
+
+## Required reliability scenarios
+
+The following expected behaviors pass in the automated application integration
+suite with controlled provider responses and real scoped persistence. Exact
+assistant wording is not the criterion.
+
+| Scenario | Expected | Actual |
+|---|---|---|
+| Outside knowledge base | Explain that information is unavailable; invent no source | Pass |
+| Budget correction | Store the revised preference and use it in the next search | Pass |
+| Callback without valid phone | Ask for contact details; create no lead/callback | Pass |
+| Lead save fails | Report failure and do not request a callback or claim success | Pass |
+| Same message twice | Reuse saved effects; avoid duplicate leads, callbacks and events | Pass |
+| Independent sessions | Keep history and customer facts separate | Pass |
+| Another business's data/tool requested | Reject foreign retrieval and restricted execution | Pass |
+| Successful lead | Automatically store a validated summary and simulated notification | Pass |
+| Same enquiry from web and mock | Use the shared engine and return equivalent facts to the correct origin | Pass |
+| New knowledge document | Retrieve/cite it only for the owning business after ingestion is ready | Pass |
+
+Tests are under `backend/tests`. Gateway/mock tests exercise channel routing;
+state/action tests exercise provenance, corrections and qualification; knowledge
+and policy tests exercise retrieval and sources; automation tests exercise failure
+and duplicate-event handling. A reference chunker under `backend/tests/fixtures`
+is a regression input, not application knowledge.
+
+## Component and browser coverage
+
+`frontend/tests/workspace.test.tsx` renders the four real feature components,
+workspace, hooks and portals. It checks first-message startup, duplicate-submit
+protection, same-message retry, terminal failure guidance, Enter/Shift+Enter,
+source/action display, list pagination, stale-business responses, lead summaries,
+document grouping/read retry/write retry, overlay closure and separate drafts.
+Only API transport methods are substituted; jsdom does not validate real layout.
+
+With a built frontend and Chrome/Edge available, run:
 
 ```powershell
-backend/.venv-system/Scripts/python.exe scripts/reassess_assignment_live.py --output SUBMISSION_FINAL-live.json --pace-seconds 30
-backend/.venv-system/Scripts/python.exe scripts/verify_assessment_sections.py
+node scripts/check_browser.mjs
 ```
 
-The first records its rerun as `docs/evidence/SUBMISSION_FINAL-live.json`; the second writes `docs/evidence/SECTIONS_FIX-after-live.json`. The `.venv-system` location is created by the Windows uv runner. On another environment, activate the equivalent Python 3.12 environment and run the same scripts with its Python. Longer pacing does not bypass daily provider limits.
+The browser harness uses ports 4018/3018 and its own disposable database. It checks
+all four screens at 320/390/768/1440 pixel widths, routing/isolation, request races,
+errors, documents and saved lead projections. It requires the Windows backend
+Python at `backend/.venv-system/Scripts/python.exe`; `ASSESSMENT_PYTHON` may specify
+another installed interpreter. Its provider responses are controlled. It cleans
+its owned processes/database and writes `docs/results/browser.json` locally.
 
-[Actual recorded ten-scenario results](evidence/live-scenarios-final.json) contain expected and actual responses/tool traces and PASS status:
+## Optional live Gemini scenarios
 
-| Case | Expected | Recorded |
-|---|---|---|
-| A01 | Unsupported information is unavailable; no fabricated facts/actions | PASS |
-| A02 | Revised budget stored and used by the next search | PASS |
-| A03 | Missing valid phone requested before lead/callback creation | PASS |
-| A04 | Lead-save failure does not claim success or request callback | PASS |
-| A05 | Duplicate/repeated requests retain one set of saved effects | PASS |
-| A06 | Independent sessions retain separate history/details | PASS |
-| A07 | Another business's data/documents/tools remain inaccessible | PASS |
-| A08 | Successful lead automatically gets a validated stored summary/local notification | PASS |
-| A09 | Web/mock share the engine and route equivalent facts to the correct recipient | PASS |
-| A10 | New document is cited for its owner and isolated from the other business | PASS |
+To test actual model behavior, privately configure the root `.env` and run:
 
-[Literal conversation/policy results](evidence/conversation-policy-final.json) verify DS202 selection, contact collection, the actual saved course and callback linkage, prerequisite citation and both refund conditions. [Focused actual-provider check](evidence/policy-recovery-final.json) deliberately omitted the initial quote selection and verified actual Gemini quote recovery. Regression tests cover invalid/malicious quotes, refusals, mixed corrections, absent callback consent and bounded semantic state repairs.
+```powershell
+backend/.venv-system/Scripts/python.exe scripts/check_live_scenarios.py --pace-seconds 30
+```
 
-## Optional browser/routing checks
-
-[Recorded 22-check browser integration result](evidence/browser-integration-final.json) covers four screens, responsive widths, ownership races, backend errors, document reader/addition and actual lead REST projections. It uses controlled model behavior, not live Gemini.
-
-`node scripts/audit_integration_browser.mjs` reproduces this isolated local browser/API check on Windows with Chrome/Edge installed, built frontend dependencies and Python at `backend/.venv-system`. It uses ports 4018/3018, writes generated results under `docs/evidence/DIRECT_MESSAGE-browser.json`, and cleans its owned processes/database. Avoid port conflicts. `python scripts/check_mock_setup.py` verifies configured private mock keys in an owned database without model requests; configure both demonstration keys first.
-
-`docs/evidence/SD08-chunker-before.py` is intentionally retained: the chunking regression imports it as a reference test fixture. It is not obsolete documentation. No fresh-OS/dependency-installation or production-load guarantee is inferred from these recorded host checks. See [limits](LIMITATIONS.md).
-
-## Clean-copy verification
-
-After segregation, the copied backend passed all 760 tests from its own source root using the already qualified Python environment. A separate disposable copy installed the locked frontend dependencies and passed lint/types, all 26 API checks and a production build. No caches/dependencies/build outputs were copied back into the handoff. Live tests were not rerun solely for packaging because the application/test source bytes are unchanged. [Verification record](evidence/clean-copy-verification.json). This is same-host verification, not a fresh-OS qualification.
-
-Dependency installation also reported advisory entries. See [limitations](LIMITATIONS.md) and the included dependency audit; passing functionality does not mean an advisory-free dependency tree.
+This consumes generation and embedding quota, embeds fictional fixture documents
+in owned temporary databases and runs the ten scenarios. It records expected and
+actual responses/actions in `docs/results/live-scenarios.json` and cleans its
+owned databases. It never reads existing application customer records. Generated
+reports are ignored by Git. Model accuracy and latency vary; deterministic tests
+are not a guarantee of every future live reply. No new live-provider run is claimed
+by the recorded publication checks above.

@@ -10,6 +10,25 @@
     "If evidence is missing, say the information is unavailable. Do not invent policies or claim payment or enrolment."
   ],
   "knowledgeBaseId": "training-institute-kb",
-  "enabledTools": ["searchCourses", "getCourseDetails", "createLead", "requestCallback"],
-  "configVersion": 1
+  "enabledTools": [
+    "searchCourses",
+    "getCourseDetails",
+    "createLead",
+    "requestCallback"
+  ],
+  "configVersion": 1,
+  "starterQuestions": [
+    {
+      "title": "Find the right course",
+      "message": "I want data science courses with a maximum budget of 30000 INR."
+    },
+    {
+      "title": "Check eligibility",
+      "message": "Does Advanced Python require programming experience?"
+    },
+    {
+      "title": "Understand the policies",
+      "message": "What are both conditions for a refund?"
+    }
+  ]
 }

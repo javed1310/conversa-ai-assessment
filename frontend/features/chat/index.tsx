@@ -10,11 +10,13 @@ export default function Chat({
   business,
   businessName,
   role,
+  starterQuestions = [],
   onChange,
 }: {
   business: string;
   businessName: string;
   role: string;
+  starterQuestions?: { title: string; message: string }[];
   onChange: () => void;
 }) {
   const [contextOpen, setContextOpen] = useState(false);
@@ -46,27 +48,13 @@ export default function Chat({
         block: "nearest",
       });
   }, [messages, busy]);
-  const prompts =
-    business === "fitness-studio"
-      ? [
-          ["Explore memberships", "What membership options are available?"],
-          ["Plan a trial visit", "How does an introductory trial visit work?"],
-          [
-            "Know the policies",
-            "What should I know before visiting the studio?",
-          ],
-        ]
-      : [
-          [
-            "Find the right course",
-            "I want data science courses with a maximum budget of 30000 INR.",
-          ],
-          [
-            "Check eligibility",
-            "Does Advanced Python require programming experience?",
-          ],
-          ["Understand the policies", "What are both conditions for a refund?"],
-        ];
+  const prompts = starterQuestions.length
+    ? starterQuestions.map(({ title, message }) => [title, message])
+    : [
+        ["Explore your options", "What options are available?"],
+        ["Ask about policies", "What policies should I know about?"],
+        ["Get started", "How can you help me?"],
+      ];
   async function start(initialText = session ? "" : text) {
     if (locked.current) return;
     locked.current = true;

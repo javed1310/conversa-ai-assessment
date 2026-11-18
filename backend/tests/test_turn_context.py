@@ -75,7 +75,7 @@ async def test_mixed_acceptance_extracts_contact_and_unprompted_yes_does_not_byp
     before = len(env.model.requests)
     reply = await env.send("yes my name is Rahul", changes=[change("name", "Rahul", "Rahul")])
     assert len(env.model.requests) == before + 1
-    assert "mobile number" in reply.reply
+    assert "phone number" in reply.reply
     session = await env.storage.db.sessions.find_one({"session_id": env.context.session_id})
     assert session["state"]["fields"]["name"] == "Rahul"
     fresh = await env.gateway.start_web_session("training-institute")

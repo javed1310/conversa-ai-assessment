@@ -10,7 +10,10 @@ flowchart TD
   Adapter --> Gateway
   Config[Validated business files: role / KB / allowlist] --> Agent[GeminiAgent]
   Gateway --> Agent
-  Agent --> State[Persistent evidence-backed customer state]
+  Agent --> Behavior[Registered business behavior]
+  Behavior --> State[Persistent evidence-backed customer state]
+  Agent --> Reply[Evidence-linked wording and semantic review]
+  Reply --> Seal
   Agent --> RAG[Own ready compatible chunks / calibrated cosine]
   Agent --> Tools[Validated scoped tool executor]
   Agent --> Model[Gemini generation adapter]
@@ -58,5 +61,7 @@ flowchart TD
 5. The tool executor enforces the business allowlist and argument/result contracts. Courses/memberships supply current facts. Lead/callback receipts come from actual persisted operations, not model prose.
 6. Lead creation stores an event/snapshot. A leased background worker generates a structured counselor summary from actual data and stores a simulated notification. Failures retain the lead and stages avoid duplicate effects.
 7. Persistent message identity and immutable prepared replies support safe replay. Unsafe uncertain write windows remain review-required. Inspection APIs expose bounded DTOs; the UI ignores aborted/stale foreign-owner responses.
+
+8. Registered business behaviors isolate course dialogue from the shared engine. Optional evidence-linked wording is reviewed before display, with verified factual/receipt fallbacks. Classified transient failures allow only bounded safe recovery; unresolved write uncertainty is not blindly retried.
 
 Mongo holds scoped business records, sessions, turns, lead/events, documents/chunks and execution records. Configuration remains file-authoritative. There is no real external messaging/CRM delivery or payment/enrollment integration. See [extensions](EXTENDING.md), [decisions](DECISIONS.md) and [limitations](LIMITATIONS.md).

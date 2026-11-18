@@ -59,7 +59,7 @@ The response's `recipient` must match the real author and `in_reply_to` the even
 
 Save an original body before sending; retry that exact string and original session/token. Completed duplicates return the same saved result. Same ID with changed text/timestamp returns 409. Concurrent duplicates may return 202; an unrelated message during processing is busy. Missing/foreign token or unknown mock key returns 404; invalid scalar/operator/oversized input returns 400. Unavailable engine/provider returns safe 503, with no fake assistant success. Error responses contain a safe code and request ID.
 
-Use a fresh session to demonstrate `Please call me` without contact: it asks for missing valid details and creates no lead. **Do not edit the database to simulate lead failure.** Reproduce the controlled failure and all ten outcomes with `python -m app.reliability_cli --live` through the uv runner; injection exists only in that private harness/tests, not an unrestricted API switch.
+Use a fresh session to demonstrate `Please call me` without contact: it asks for missing valid details and creates no lead. **Do not edit the database to simulate lead failure.** Reproduce the controlled failure and all ten outcomes with `python scripts/check_live_scenarios.py` through the uv runner; injection exists only in that private harness/tests, not an unrestricted API switch.
 
 
 Recorded expected/actual results and reproduction commands: [TESTING](TESTING.md).

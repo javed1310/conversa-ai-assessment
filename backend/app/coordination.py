@@ -112,11 +112,18 @@ class TurnCoordinator:
         self.active[scope] = (message_id, digest)
         return token
 
-    async def retry_failed(self, repo: Repository, context: ExecutionContext) -> None:
-        """Explicit internal recovery request; never a public arbitrary-retry endpoint."""
+    async def retry_failed(
+        self, repo: Repository, context: ExecutionContext, *, transient: bool = False
+    ) -> None:
+        """Reopen only an owned safe turn; automatic recovery has a durable retry budget."""
         turn = await repo.turn(context)
         if turn.status != "failed":
             raise CoordinationFailure("TURN_NOT_FAILED", 409)
+        if transient and (
+            turn.failure_code not in {"TIMEOUT", "UNAVAILABLE", "RATE_LIMIT"}
+            or turn.transient_retries >= 2
+        ):
+            raise CoordinationFailure("TURN_FAILED", 503)
         if (context.business_id, context.session_id) in self.active:
             raise CoordinationFailure("SESSION_BUSY", 409)
         await self.safe_to_resume(repo, context, turn)
@@ -144,10 +151,21 @@ class TurnCoordinator:
         )
         if reserved.modified_count != 1:
             raise CoordinationFailure("SESSION_BUSY", 409)
-        await repo.db.turns.update_one(
-            repo.owner(context) | {"turn_id": turn.turn_id, "status": "failed"},
-            {"$set": {"status": "processing", "completed_at": None, "processing_token": None}},
+        key: dict[str, Any] = repo.owner(context) | {"turn_id": turn.turn_id, "status": "failed"}
+        if transient:
+            # Old turns without retry metadata never enter the automatic path.
+            key |= {"failure_code": turn.failure_code, "transient_retries": turn.transient_retries}
+        update: dict[str, Any] = {
+            "$set": {"status": "processing", "completed_at": None, "processing_token": None}
+        }
+        if transient:
+            update["$inc"] = {"transient_retries": 1}
+        reopened = await repo.db.turns.update_one(
+            key,
+            update,
         )
+        if reopened.modified_count != 1:
+            raise CoordinationFailure("TURN_NOT_FAILED", 409)
 
     def finished(self, context: ExecutionContext) -> None:
         self.active.pop((context.business_id, context.session_id), None)

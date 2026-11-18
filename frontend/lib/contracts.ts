@@ -2,7 +2,7 @@
 export type ActionResult = { "result": (ToolSuccess | ToolFailure); "executionId": string; "replayed"?: boolean; "handlerInvoked"?: boolean };
 export type AutomationView = { "eventId": string; "status": "pending" | "processing" | "completed" | "failed"; "attempts": number; "summary"?: (Summary | null); "failureCode"?: (string | null); "retryable": boolean };
 export type BusinessList = { "businesses": Array<BusinessSummary> };
-export type BusinessSummary = { "businessId": string; "businessName": string; "agentRole": string };
+export type BusinessSummary = { "businessId": string; "businessName": string; "agentRole": string; "starterQuestions"?: Array<StarterQuestion> };
 export type ChatResult = { "status"?: "completed"; "messageId": string; "sessionId": string; "reply": string; "actions"?: Array<ActionResult>; "sources"?: Array<SourceRef> };
 export type ConversationView = { "businessId": string; "sessionId": string; "channel": "web" | "mock"; "createdAt": string; "updatedAt": string; "leadId"?: (string | null) };
 export type DocumentDetail = { "businessId": string; "documentId": string; "version": number; "title": string; "format": "text" | "markdown"; "status": "pending" | "ingesting" | "ready" | "failed"; "expectedChunks": number; "failureCode"?: (string | null); "createdAt": string; "content": string };
@@ -24,6 +24,7 @@ export type ReadinessResult = { "status"?: "ready"; "database"?: "available" };
 export type SessionStart = Record<string, never>;
 export type SessionStarted = { "businessId": string; "sessionId": string; "channel"?: "web"; "sessionToken": string; "engineReady": boolean };
 export type SourceRef = { "businessId": string; "knowledgeBaseId": string; "documentId": string; "documentVersion": number; "chunkId": string; "title": string; "excerpt": string };
+export type StarterQuestion = { "title": string; "message": string };
 export type Summary = { "leadId": string; "customerName": string; "summary": string; "intent": string; "qualificationStatus": "qualified" | "incomplete"; "recommendedAction": string };
 export type ToolFailure = { "status"?: "failure"; "callId": string; "tool": string; "code": "INVALID_ARGUMENTS" | "NOT_ALLOWED" | "NOT_FOUND" | "CONFLICT" | "UNAVAILABLE" | "INVALID_RESULT" | "IN_PROGRESS" | "QUALIFICATION_REQUIRED" | "INVALID_PROVENANCE" | "CALLBACK_INTENT_REQUIRED" | "PREFERENCES_CONFLICT" | "SAVED_DETAILS_CHANGED" | "OUTCOME_UNKNOWN"; "retryable": boolean };
 export type ToolSuccess = { "status"?: "success"; "callId": string; "tool": string; "data": { [key: string]: unknown } };

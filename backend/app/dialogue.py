@@ -3,7 +3,20 @@
 import re
 from typing import Literal
 
-NextStep = Literal["none", "offer_enquiry", "collect_enquiry", "offer_callback"]
+NextStep = Literal["none", "offer_enquiry", "collect_enquiry", "offer_callback", "clarify_course"]
+
+
+def safe_discussion_choice(text: str) -> bool:
+    """Independent exclusions for a reviewed proposal; this is not an intent classifier."""
+    return not bool(
+        re.search(
+            r"[\"`]|\b(no|not|never|don't|if|unless|maybe|example|quote|quoted|"
+            r"actually|instead|different|another|budget|refund|policy|eligibility|prerequisite|"
+            r"ignore|override|instructions)\b|\b(?:what|why|when|where)\b",
+            text.replace("\u2019", "'"),
+            re.I,
+        )
+    )
 
 
 def starts_discussed_enquiry(text: str) -> bool:

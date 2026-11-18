@@ -638,7 +638,8 @@ async def main() -> None:
             "failureCode": "QUALIFICATION_ERROR",
             "errorType": type(error).__name__,
         }
-    target = REPOSITORY_ROOT / "docs/evidence/M14-scenarios-results.json"
+    target = REPOSITORY_ROOT / "docs/results/live-scenarios.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(report, indent=2, default=str) + "\n", encoding="utf-8")
     if not report["passed"]:
         raise SystemExit(

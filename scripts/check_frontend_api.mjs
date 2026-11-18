@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const compiled = spawnSync(process.execPath, [join(root,'frontend/node_modules/typescript/bin/tsc'),
   'lib/api.ts','lib/response-validation.ts','lib/response-schemas.ts','lib/contracts.ts','app/api/v1/[...path]/route.ts',
@@ -107,5 +107,5 @@ try {
     await POST(new Request('http://localhost/api/v1/businesses/training-institute/sessions',{method:'POST',body:'{}',signal:controller.signal}),{params:Promise.resolve({path:['businesses','training-institute','sessions']})});
     assert.equal(actual.aborted,false);
   });
-} finally {globalThis.fetch=savedFetch;writeFileSync(new URL('../docs/evidence/SD10-api-results.json',import.meta.url),JSON.stringify({passed:checks.length===26,checks,scope:'Compiled actual frontend client/validator/proxy with intercepted fetch; no live model calls.'},null,2)+'\n');}
+} finally {globalThis.fetch=savedFetch;mkdirSync(new URL('../docs/results/',import.meta.url),{recursive:true});writeFileSync(new URL('../docs/results/frontend-api.json',import.meta.url),JSON.stringify({passed:checks.length===26,checks,scope:'Compiled actual frontend client/validator/proxy with intercepted fetch; no live model calls.'},null,2)+'\n');}
 console.log(`PASS: ${checks.length} frontend API/validator/proxy checks.`);

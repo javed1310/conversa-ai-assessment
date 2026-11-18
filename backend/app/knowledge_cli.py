@@ -212,7 +212,8 @@ async def main() -> None:
     try:
         if args.mode == "qualify":
             report = await qualify(provider, settings, args.version)
-            target = REPOSITORY_ROOT / "docs/evidence/M06-live-results.json"
+            target = REPOSITORY_ROOT / "docs/results/knowledge-qualification.json"
+            target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
             print(f"PASS: live qualification written to {target}; review recommendedRagMinScore.")
         else:
@@ -226,7 +227,8 @@ async def main() -> None:
                     "liveCallsMadeByThisCommand": args.mode != "register",
                 }
                 if args.mode == "register":
-                    target = REPOSITORY_ROOT / "docs/evidence/M06-registration.json"
+                    target = REPOSITORY_ROOT / "docs/results/knowledge-registration.json"
+                    target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
                 print(json.dumps(report, indent=2))
     except (EmbeddingFailure, KnowledgeFailure) as error:

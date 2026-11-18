@@ -1,6 +1,5 @@
 """Validated domain contracts; wire JSON is camelCase, Python is snake_case."""
 
-import re
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 from uuid import UUID
@@ -15,6 +14,8 @@ from pydantic import (
     model_validator,
 )
 from pydantic.alias_generators import to_camel
+
+from app.phones import normalize_phone
 
 Identifier = Annotated[
     str, StringConstraints(strict=True, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
@@ -90,12 +91,7 @@ class CustomerFields(Contract):
     def canonical_phone(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        compact = re.sub(r"[\s-]", "", value)
-        if compact.startswith("+91"):
-            compact = compact[3:]
-        if not re.fullmatch(r"[6-9][0-9]{9}", compact):
-            raise ValueError("Expected an Indian mobile number, optionally prefixed with +91")
-        return "+91" + compact
+        return normalize_phone(value)
 
 
 class CustomerChanges(CustomerFields):

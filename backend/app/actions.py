@@ -54,6 +54,8 @@ class LeadActions:
             ):
                 raise ActionRejected("INVALID_PROVENANCE")
             supported = supports_value(field, value, proof.excerpt)
+            if field == "phone":
+                supported = supported and supports_value("phone", value, evidence_turn.input_text)
             if field == "course_id" and not supported:
                 supported = any(
                     point.stage == "selection"

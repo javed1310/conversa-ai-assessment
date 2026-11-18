@@ -16,6 +16,7 @@ from app.contracts import ChatResult, ExecutionContext, ProcessingResult
 from app.coordination import CoordinationFailure, TurnCoordinator
 from app.database import Database
 from app.engine import ConversationEngine
+from app.gemini import ProviderFailure
 from app.measurements import operation
 from app.persistence_models import Turn
 from app.provider_control import deadline
@@ -140,7 +141,33 @@ class Gateway:
                 )
                 return adapter.encode(previous.output, context)
             if previous.status == "failed":
-                raise GatewayFailure(503, "TURN_FAILED", "This message requires explicit recovery.")
+                if (
+                    previous.failure_code not in {"TIMEOUT", "UNAVAILABLE", "RATE_LIMIT"}
+                    or previous.transient_retries >= 2
+                ):
+                    raise GatewayFailure(
+                        503, "TURN_FAILED", "This message requires explicit recovery."
+                    )
+                if not self.engine.ready:
+                    raise GatewayFailure(
+                        503, "ENGINE_UNAVAILABLE", "Conversation engine is unavailable."
+                    )
+                recovery = context.model_copy(update={"turn_id": previous.turn_id})
+                try:
+                    await self.coordinator.retry_failed(repo, recovery, transient=True)
+                except CoordinationFailure as error:
+                    if error.code == "TURN_NOT_FAILED":
+                        # Another retry has already reopened this identity; do not run it twice.
+                        return adapter.encode(
+                            ProcessingResult(
+                                message_id=message.message_id, session_id=context.session_id
+                            ),
+                            context,
+                        )
+                    raise GatewayFailure(
+                        error.status, error.code, "Message recovery cannot start safely."
+                    ) from None
+                previous = await repo.turn(recovery)
         if not self.engine.ready:
             raise GatewayFailure(
                 503, "ENGINE_UNAVAILABLE", "Conversation engine is not available yet."
@@ -209,6 +236,15 @@ class Gateway:
             raise
         except Exception as error:
             logger.warning("turn_processing_failed error_type=%s", type(error).__name__)
+            failure_code = "UNCLASSIFIED"
+            if (
+                isinstance(error, ProviderFailure)
+                and error.retryable
+                and error.code in {"TIMEOUT", "UNAVAILABLE", "RATE_LIMIT"}
+            ):
+                failure_code = error.code
+            elif isinstance(error, TimeoutError):
+                failure_code = "TIMEOUT"
             if turn is not None:
                 try:
                     await self.database.db.turns.update_one(
@@ -218,7 +254,13 @@ class Gateway:
                             "status": "processing",
                             "processing_token": token,
                         },
-                        {"$set": {"status": "failed", "completed_at": datetime.now(UTC)}},
+                        {
+                            "$set": {
+                                "status": "failed",
+                                "completed_at": datetime.now(UTC),
+                                "failure_code": failure_code,
+                            }
+                        },
                     )
                     await sessions.update_one(gate, {"$unset": unset})
                 except PyMongoError:

@@ -174,10 +174,10 @@ class TestAgent:
         env = agent_env
         await prepare_enquiry_offer(env)
         accepted = await env.send(acceptance)
-        assert "name" in accepted.reply and "mobile number" in accepted.reply
+        assert "name" in accepted.reply and "phone number" in accepted.reply
         assert not accepted.actions and "28000" not in accepted.reply
         named = await env.send("My name is Rahul.", changes=[change("name", "Rahul", "Rahul")])
-        assert "mobile number" in named.reply and "share your name" not in named.reply
+        assert "phone number" in named.reply and "share your name" not in named.reply
         saved = await env.send(
             "My phone is 9876543210.", changes=[change("phone", "9876543210", "9876543210")]
         )
@@ -270,7 +270,7 @@ class TestAgent:
         )
         assert policy.sources
         named = await env.send("My name is Rahul.", changes=[change("name", "Rahul", "Rahul")])
-        assert "mobile number" in named.reply and "28000" not in named.reply
+        assert "phone number" in named.reply and "28000" not in named.reply
 
     async def test_collection_keeps_conflict_warning_without_blocking_qualified_interest(
         self, agent_env

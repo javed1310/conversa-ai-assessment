@@ -1,9 +1,9 @@
-# Secret protection is established in A004, before Git setup in A005.
+# Private configuration
 .env
 .env.*
 !.env.example
 
-# Python / frontend generated files; refine during M01 as needed.
+# Dependencies, caches and generated outputs
 .venv/
 .venv-*/
 __pycache__/
@@ -13,35 +13,17 @@ __pycache__/
 .ruff_cache/
 node_modules/
 .next/
-coverage/
-playwright-report/
-test-results/
-
-# Workspace-local bootstrap tools and download caches.
 .tools/
 .cache/
 *.tsbuildinfo
+*.log
+coverage/
+test-results/
+playwright-report/
 dist/
 build/
 *.egg-info/
-*.log
 
-# Reproducible handoff archives/manifests are generated outside Git history.
-/deliverables/Assessment_Source_M15.zip
-/deliverables/Assessment_Source_M15_manifest.json
-/deliverables/Assessment_Repository.bundle
-/deliverables/Assessment_Repository_manifest.json
 
-# Superseded generated HTML dashboard (native Markdown is authoritative).
-/brain/*.html
-/brain/**/*.html
-/scripts/build_brain.py
-
-# Clean reviewer handoff is generated separately from development history.
-/submission/
-
-# Generated verification outputs (recorded final evidence has friendly filenames).
-/docs/evidence/SD10-api-results.json
-/docs/evidence/DIRECT_MESSAGE-browser.json
-/docs/evidence/SUBMISSION_FINAL-live.json
-/docs/evidence/SECTIONS_FIX-after-live.json
+# Reproducible test output
+/docs/results/

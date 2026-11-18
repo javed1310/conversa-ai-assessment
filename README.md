@@ -1,6 +1,6 @@
 # Conversa - AI customer engagement assessment
 
-Python/FastAPI backend, Next.js/TypeScript frontend, MongoDB and Gemini. The training institute and fitness studio share an agent, RAG pipeline and messaging gateway, with business-scoped knowledge/tools. This directory is the clean submission snapshot; development logs, old plans and private credentials are excluded.
+Python/FastAPI backend, Next.js/TypeScript frontend, MongoDB and Gemini. The training institute and fitness studio share an agent, RAG pipeline and messaging gateway, with business-scoped knowledge/tools. This repository contains the assessment application and its setup, API, architecture and testing documentation.
 
 ## Local setup
 
@@ -45,26 +45,32 @@ Open **http://localhost:3000** and backend OpenAPI UI **http://127.0.0.1:4000/do
 
 For a local production build: `npm.cmd --prefix frontend run build`, then `npm.cmd --prefix frontend run start`. Stop foreground services with Ctrl+C. Stop Mongo with `docker compose -f compose.yaml stop mongo`; do not delete its volume to restart. Readiness checks Mongo, not model quota. No user/session/lead database export is supplied: seed/ingest create the fictional fixtures.
 
-## Verify
+## Run the checks
 
 ```powershell
 powershell -NoProfile -File scripts/check.ps1
 ```
 
-This runs lint, formatting, strict types, backend tests, generated-contract consistency, frontend API checks and build. Mongo is required; the default suite uses controlled model substitutes and needs no live key. The recorded application gate is **760 backend tests + 26 frontend API checks**. Real Gemini evidence records **10/10 acceptance scenarios**, **7/7 literal conversation/policy checks** and two focused policy-recovery checks. Evidence is a scoped observation, not a guarantee of every future model reply.
+Or use the installed backend Python: `python scripts/check.py`. MongoDB is
+required. The default checks need no model key: they use controlled model
+responses, real MongoDB integration, frontend API checks and rendered React tests.
+See [test scenarios and expected/actual results](docs/TESTING.md).
 
-See [test commands and expected/actual results](docs/TESTING.md) before running optional live tests: they consume quota and clean up their own fictional databases. No live rerun is needed merely to browse this source.
+## Documentation
 
-## Reviewer guide
-
-- [REST examples](docs/API_EXAMPLES.md): full enquiry-to-callback and mock-channel request.
+- [API examples](docs/API_EXAMPLES.md): complete enquiry-to-callback flow and mock channel.
 - [Architecture](docs/ARCHITECTURE.md): agent, retrieval, tools, gateway, state and automation.
 - [Add a business, tool or channel](docs/EXTENDING.md).
-- [Main technical decisions](docs/DECISIONS.md).
-- [Known limitations and scope](docs/LIMITATIONS.md).
-- [Requirement coverage](docs/REQUIREMENTS.md).
-- [Machine-readable API/domain contracts](docs/contracts).
+- [Technical decisions](docs/DECISIONS.md).
+- [Limitations and incomplete work](docs/LIMITATIONS.md).
+- [Portable setup](docs/SETUP.md).
+- [OpenAPI and domain schemas](docs/contracts).
 
-This source has its own clean Git snapshot. Submission repository: [javed1310/conversa-ai-assessment](https://github.com/javed1310/conversa-ai-assessment). The companion `.bundle` is cloneable Git source/history; the ZIP is the same source without `.git`. API keys, installed dependencies, local databases, build outputs and old development history are not part of either handoff.
+The application is a local assessment prototype. External messaging and CRM
+notifications are simulated; no payment or direct enrolment is implemented.
+Current prices and availability come from tools, while policy answers cite
+business documents. A callback request is confirmed only from a saved tool result.
 
-Dependency advisories discovered during clean-copy verification are disclosed in [LIMITATIONS](docs/LIMITATIONS.md); segregation does not constitute a security-clean or production-readiness claim.
+The full development dependency audit retains 12 high affected-package entries
+for an upstream unpatched advisory; the production-only audit reports zero.
+See the limitations before exposing this trusted local workspace publicly.

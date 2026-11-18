@@ -28,6 +28,7 @@ from app.dialogue import (
     callback_status_question,
     decline,
     expresses_discussed_interest,
+    safe_discussion_choice,
     starts_discussed_enquiry,
 )
 from app.generation import EvidencedProposal
@@ -281,6 +282,12 @@ class StateService:
                 raise StateFailure("INVALID_PROVENANCE")
             if field in changes and not supports_value(field, changes[field], proof.excerpt):
                 raise StateFailure("INVALID_PROVENANCE")
+            if (
+                field == "phone"
+                and field in changes
+                and not supports_value("phone", changes[field], turn.input_text)
+            ):
+                raise StateFailure("INVALID_PROVENANCE")
             if field in proposed.proposal.clear_fields and not (
                 explicit_clear(field, proof.excerpt) and explicit_clear(field, turn.input_text)
             ):
@@ -387,14 +394,26 @@ class StateService:
         return await self._select_course(context, excerpt, course)
 
     async def select_discussed(
-        self, context: ExecutionContext, excerpt: str, course_id: str
+        self,
+        context: ExecutionContext,
+        excerpt: str,
+        course_id: str,
+        *,
+        reviewed_choice: bool = False,
     ) -> Session:
         turn = await self.repo.turn(context)
         discussed = await discussed_course(self.repo, context, turn)
+        literal_choice = reviewed_choice and bool(
+            re.search(r"\b" + re.escape(course_id) + r"\b", excerpt, re.I)
+        )
         if (
             excerpt != turn.input_text
-            or not (starts_discussed_enquiry(excerpt) or expresses_discussed_interest(excerpt))
-            or discussed != course_id
+            or not (
+                starts_discussed_enquiry(excerpt)
+                or expresses_discussed_interest(excerpt)
+                or (reviewed_choice and safe_discussion_choice(excerpt))
+            )
+            or (discussed != course_id and not literal_choice)
         ):
             raise StateFailure("REFERENCE_AMBIGUOUS")
         return await self._select_course(context, excerpt, await self.repo.course(course_id))

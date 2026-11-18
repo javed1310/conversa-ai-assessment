@@ -2,6 +2,8 @@
 
 import re
 
+from app.phones import normalize_phone, phone_is_supported
+
 FIELD_WORDS = {
     "name": r"name",
     "phone": r"phone|number|mobile",
@@ -24,9 +26,7 @@ def explicit_clear(field: str, excerpt: str) -> bool:
 
 def supports_value(field: str, value: object, excerpt: str) -> bool:
     if field == "phone":
-        digits = re.sub(r"[\s+-]", "", excerpt)
-        mobile = str(value).removeprefix("+91")
-        return re.search(r"(?<!\d)(?:91)?" + re.escape(mobile) + r"(?!\d)", digits) is not None
+        return phone_is_supported(value, excerpt)
     if field == "budget":
         for token, unit in re.findall(
             r"(?<![\w.])([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?)\s*(k|thousand|lakh)?\b",
@@ -59,7 +59,7 @@ def supports_value(field: str, value: object, excerpt: str) -> bool:
 
 
 def contact_line(text: str) -> tuple[str, str] | None:
-    """Only a complete standalone name and Indian mobile, not prose or instructions."""
+    """Only a complete standalone name and phone, not prose or instructions."""
     if re.search(
         r"\b(no|not|never|don't|do|call|save|example|quote|phone|number|name|is|my|"
         r"instead|wrong|fake|remove|ignore|instructions)\b|[\"`!?]",
@@ -69,7 +69,14 @@ def contact_line(text: str) -> tuple[str, str] | None:
         return None
     match = re.fullmatch(
         r"\s*([^\W\d_][^\W\d_ .'-]*(?:[ .'-]+[^\W\d_]+){0,5})\s*[,;]?\s+"
-        r"((?:\+91[ -]?)?[6-9]\d{9})\s*\.?\s*",
+        r"(\+?[0-9(][0-9 ().-]{1,61}[0-9)])\s*\.?\s*",
         text,
     )
-    return (match[1].strip(), match[2]) if match else None
+    if match is None:
+        return None
+    try:
+        normalize_phone(match[2])
+    except ValueError:
+        return None
+    # Keep literal formatting as evidence; CustomerFields supplies canonical storage.
+    return match[1].strip(), match[2]

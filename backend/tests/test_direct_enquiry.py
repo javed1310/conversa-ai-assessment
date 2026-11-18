@@ -51,7 +51,7 @@ async def test_direct_request_collects_then_saves_without_offer(agent_env, monke
     before = len(env.model.requests)
     result = await env.send(text)
     assert len(env.model.requests) == before + 1
-    assert "name" in result.reply and "mobile number" in result.reply
+    assert "name" in result.reply and "phone number" in result.reply
     assert "25000" not in result.reply and "weekdays" not in result.reply
     assert not result.actions
     turn = await env.storage.db.turns.find_one({"message_id": result.message_id})
@@ -60,7 +60,7 @@ async def test_direct_request_collects_then_saves_without_offer(agent_env, monke
     assert await env.storage.db.leads.count_documents({}) == 0
     monkeypatch.undo()
     named = await env.send("My name is Rahul.", changes=[change("name", "Rahul", "Rahul")])
-    assert "mobile number" in named.reply and "share your name" not in named.reply
+    assert "phone number" in named.reply and "share your name" not in named.reply
     saved = await env.send(
         "My phone is 9876543210.", changes=[change("phone", "9876543210", "9876543210")]
     )
@@ -79,7 +79,7 @@ async def test_direct_request_asks_only_for_missing_phone(agent_env, monkeypatch
         "My name is Rahul. I want to enquire about it.",
         changes=[change("name", "Rahul", "Rahul")],
     )
-    assert "mobile number" in result.reply and "share your name" not in result.reply
+    assert "phone number" in result.reply and "share your name" not in result.reply
     assert not result.actions
 
 

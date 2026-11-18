@@ -2,6 +2,7 @@ import dataclasses
 import importlib.util
 import math
 import sys
+from pathlib import Path
 
 import pytest
 from pymongo.asynchronous.collection import AsyncCollection
@@ -9,13 +10,12 @@ from pymongo.asynchronous.collection import AsyncCollection
 from app.chunking import chunk_text
 from app.embeddings import EmbeddingFailure
 from app.knowledge import KnowledgeFailure
-from app.settings import REPOSITORY_ROOT
 from tests.test_knowledge import TestOnlyEmbedder, document, service
 
 
 def legacy_chunker():
     spec = importlib.util.spec_from_file_location(
-        "sd08_reference", REPOSITORY_ROOT / "docs/evidence/SD08-chunker-before.py"
+        "chunker_reference", Path(__file__).parent / "fixtures/chunker_reference.py"
     )
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module

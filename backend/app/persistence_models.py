@@ -81,6 +81,9 @@ class Turn(Contract):
     input_timestamp: AwareDatetime
     created_at: AwareDatetime
     status: Literal["processing", "completed", "failed"] = "processing"
+    # Internal recovery metadata; historical turns default to manual review.
+    failure_code: Identifier | None = None
+    transient_retries: Annotated[int, Field(strict=True, ge=0, le=2)] = 0
     output: ChatResult | None = None
     prepared_output: ChatResult | None = None
     completed_at: AwareDatetime | None = None

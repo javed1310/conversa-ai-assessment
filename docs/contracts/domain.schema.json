@@ -90,7 +90,8 @@
             "none",
             "offer_enquiry",
             "collect_enquiry",
-            "offer_callback"
+            "offer_callback",
+            "clarify_course"
           ],
           "title": "Nextstep",
           "type": "string"
@@ -384,6 +385,49 @@
       "title": "ChatResult",
       "type": "object"
     },
+    "ChoiceReview": {
+      "additionalProperties": false,
+      "properties": {
+        "explicitInterest": {
+          "title": "Explicitinterest",
+          "type": "boolean"
+        },
+        "noContradiction": {
+          "title": "Nocontradiction",
+          "type": "boolean"
+        },
+        "sameCourse": {
+          "title": "Samecourse",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "explicitInterest",
+        "sameCourse",
+        "noContradiction"
+      ],
+      "title": "ChoiceReview",
+      "type": "object"
+    },
+    "ConversationalDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "sentences": {
+          "items": {
+            "$ref": "#/$defs/GroundedClaim"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Sentences",
+          "type": "array"
+        }
+      },
+      "required": [
+        "sentences"
+      ],
+      "title": "ConversationalDraft",
+      "type": "object"
+    },
     "Course": {
       "additionalProperties": false,
       "properties": {
@@ -518,6 +562,26 @@
         "excerpt"
       ],
       "title": "CourseQuestion",
+      "type": "object"
+    },
+    "CourseQuestionSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CourseQuestion"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "question"
+      ],
+      "title": "CourseQuestionSelection",
       "type": "object"
     },
     "CourseSearchResult": {
@@ -839,6 +903,37 @@
       "title": "Delivery",
       "type": "object"
     },
+    "DiscussedChoice": {
+      "additionalProperties": false,
+      "properties": {
+        "courseId": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "title": "Courseid",
+          "type": "string"
+        },
+        "excerpt": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "purpose": {
+          "enum": [
+            "selection",
+            "enquiry"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        }
+      },
+      "required": [
+        "courseId",
+        "excerpt",
+        "purpose"
+      ],
+      "title": "DiscussedChoice",
+      "type": "object"
+    },
     "DisplayedCourse": {
       "additionalProperties": false,
       "properties": {
@@ -1149,6 +1244,17 @@
           ],
           "default": null
         },
+        "discussedChoice": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscussedChoice"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "enquiryRequest": {
           "anyOf": [
             {
@@ -1176,6 +1282,11 @@
           },
           "title": "Evidence",
           "type": "object"
+        },
+        "phoneRejected": {
+          "default": false,
+          "title": "Phonerejected",
+          "type": "boolean"
         },
         "proposal": {
           "$ref": "#/$defs/StateProposal"
@@ -1992,6 +2103,35 @@
       "title": "Qualification",
       "type": "object"
     },
+    "ReplyReview": {
+      "additionalProperties": false,
+      "properties": {
+        "grounded": {
+          "title": "Grounded",
+          "type": "boolean"
+        },
+        "noActionClaims": {
+          "title": "Noactionclaims",
+          "type": "boolean"
+        },
+        "preservesConditions": {
+          "title": "Preservesconditions",
+          "type": "boolean"
+        },
+        "relevant": {
+          "title": "Relevant",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "grounded",
+        "relevant",
+        "preservesConditions",
+        "noActionClaims"
+      ],
+      "title": "ReplyReview",
+      "type": "object"
+    },
     "ReplySelection": {
       "additionalProperties": false,
       "properties": {
@@ -2013,6 +2153,17 @@
           "default": false,
           "title": "Confirmation",
           "type": "boolean"
+        },
+        "conversationalDraft": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConversationalDraft"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "courseFields": {
           "default": [],
@@ -2471,6 +2622,17 @@
           ],
           "default": null
         },
+        "discussedChoice": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscussedChoice"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "enquiryRequest": {
           "anyOf": [
             {
@@ -2822,6 +2984,19 @@
           "title": "Createdat",
           "type": "string"
         },
+        "failureCode": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failurecode"
+        },
         "inputText": {
           "maxLength": 8000,
           "minLength": 1,
@@ -2912,6 +3087,13 @@
           "title": "Status",
           "type": "string"
         },
+        "transientRetries": {
+          "default": 0,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Transientretries",
+          "type": "integer"
+        },
         "turnId": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
           "title": "Turnid",
@@ -2976,6 +3158,21 @@
     },
     {
       "$ref": "#/$defs/AnswerDraft"
+    },
+    {
+      "$ref": "#/$defs/ConversationalDraft"
+    },
+    {
+      "$ref": "#/$defs/ChoiceReview"
+    },
+    {
+      "$ref": "#/$defs/DiscussedChoice"
+    },
+    {
+      "$ref": "#/$defs/CourseQuestionSelection"
+    },
+    {
+      "$ref": "#/$defs/ReplyReview"
     },
     {
       "$ref": "#/$defs/SummaryDraft"

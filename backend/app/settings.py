@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     business_config_dir: Path = REPOSITORY_ROOT / "businesses"
     ai_provider: Literal["gemini"] = "gemini"
     ai_chat_enabled: bool = True
+    conversational_replies: bool = True
     gemini_api_key: SecretStr | None = None
     # Generation is configured for M07 qualification, not implemented by these settings.
     gemini_chat_model: str = "gemini-3.5-flash-lite"

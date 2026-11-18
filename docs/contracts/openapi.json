@@ -137,6 +137,14 @@
             "minLength": 1,
             "title": "Businessname",
             "type": "string"
+          },
+          "starterQuestions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/StarterQuestion"
+            },
+            "title": "Starterquestions",
+            "type": "array"
           }
         },
         "required": [
@@ -982,6 +990,29 @@
           "excerpt"
         ],
         "title": "SourceRef",
+        "type": "object"
+      },
+      "StarterQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "message"
+        ],
+        "title": "StarterQuestion",
         "type": "object"
       },
       "Summary": {

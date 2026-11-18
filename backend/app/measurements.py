@@ -29,6 +29,7 @@ STAGES = frozenset(
         "persistence",
         "state_proposal",
         "reply_selection",
+        "reply_review",
         "planner",
         "summary_plan",
         "summary_store",
@@ -79,6 +80,11 @@ COUNTERS = frozenset(
         "rag_snapshot_evictions",
         "rag_snapshot_invalidations",
         "rag_snapshot_stale_builds",
+        "conversational_reply_deadline_fallback",
+        "conversational_reply_rejected",
+        "conversational_reply_provider_fallback",
+        "conversational_reply_accepted",
+        "conversational_reply_invalid_draft",
     }
 )
 TOKEN_FIELDS = (

@@ -1,19 +1,39 @@
-# Known limitations and incomplete production work
+# Limitations and incomplete work
 
-No assessment-required feature is intentionally left as a placeholder in this snapshot. The passing tests demonstrate their recorded scope; they do not certify every model response or the candidate's interview performance.
+- This is a trusted local assessment workspace. Production user authentication,
+  hosting and disaster recovery are not implemented. Do not expose inspection
+  APIs containing customer data publicly without an authorization layer.
+- Gemini chat, embeddings and summaries require a valid private key and available
+  model/project quota. Output can fail validation; repairs/retries are bounded.
+  Evidence-linked wording is checked and has factual/receipt fallbacks, but model
+  judgments remain probabilistic and may add latency.
+- Full npm audit retains 12 high affected development-package entries for the
+  upstream [picomatch advisory](https://github.com/advisories/GHSA-fc5q-39xc-vjpf).
+  No patched version was listed at verification. The production-only audit reports
+  zero. Full dependency remediation is not complete; a compatible patch or a
+  separately reviewed lint-stack migration is still needed. Checks are not suppressed.
+- Windows is qualified. Portable setup commands are provided, but Linux/macOS
+  execution is unverified. The optional browser harness uses Windows process paths.
+- External messaging and CRM notifications are local simulations. A saved callback
+  request is not a scheduled/completed call. Media, real delivery and cross-channel
+  customer identity linking are not implemented or required.
+- Payments, direct enrolment, seat reservations, configuration editors, course
+  management editors, analytics and workflow builders are outside the assessment.
+  Uploading a course document does not create a catalogue record.
+- One saved enquiry snapshot is retained per session. Later active-state corrections
+  do not rewrite that lead or retarget its callback. Start a new session for a
+  fresh enquiry; an update/cancel workflow would require explicit design.
+- Phone validation checks syntax/numbering metadata, not ownership or reachability.
+  Existing fictional ten-digit Indian mobile syntax is retained; outside India use
+  an explicit +country code. Extensions and vanity numbers are unsupported.
+- Retrieval uses a bounded small corpus and linear cosine search (499-chunk cap).
+  Worker/provider capacity is bounded for a local prototype. Uncertain interrupted
+  writes can require review rather than automatic replay.
+- Business configurations and registered handlers are trusted code. A new business
+  needs its own documents/data and tool registration; it is not an executable
+  customer-uploaded plugin. Document truth depends on the supplied business policies.
 
-- Gemini generation, embeddings and summaries require the reviewer's valid key and available project/model quota. Latency varies. Invalid model output is validated and repaired only within bounded attempts, then fails honestly; it can still require a new customer message.
-- Current fees, schedules and availability come from business tools. A document cannot confirm a successful operation, payment, reservation or live inventory. Course knowledge upload does not create a course catalogue record.
-- Local trusted operator UI/APIs have no production user/role authorization layer. Do not expose this prototype publicly as-is. Web session tokens live in browser memory; reload starts a new writable session while saved history remains inspectable.
-- One initial saved enquiry snapshot is retained per session. Later corrections affect future searches/state but do not silently rewrite a saved lead or retarget its callback. Start a new conversation for a fresh enquiry; a production update/cancel workflow would need explicit design.
-- Mock external messaging and CRM notifications are local simulations. A callback request is not a scheduled/completed phone call. Real messaging delivery, signatures/media and CRM delivery are not implemented or required.
-- No payments, direct enrollment, seat reservation, business editor, course editor, analytics or workflow builder is included in the required UI.
-- Retrieval and worker capacity are bounded for a small local assessment corpus (499-chunk cap). There is no distributed throughput or production disaster-recovery claim. Ambiguous pre-prepared-response write interruptions can require operator review rather than unsafe automatic retries.
-- Trusted configuration/files are authoritative. New businesses need their own documents/data and registered tools; this is not a customer-uploaded executable plugin system. Source policy truth still depends on trusted document ownership.
-- Python 3.12/Node 24 and the pinned dependencies were qualified on the development host. Reviewers need to install prerequisites; cached same-host verification is not proof of a clean operating-system installation.
-
-Main technical decisions and extension approaches are in [DECISIONS](DECISIONS.md) and [EXTENDING](EXTENDING.md). Production hosting/authentication, maintained-runtime rollout, cross-channel customer identity and real integrations would need additional work after the assessment. Publishing the source repository does not deploy the application. No automatic account billing change is performed.
-
-## Dependency audit at segregation time
-
-The locked frontend install reported **12 high-severity dependency entries**, zero critical, in `npm audit`. All reported affected nodes are marked development dependencies in the lockfile (lint/glob tooling). These are advisory records, not proof of 12 distinct exploitable application endpoints. They still require dependency/security review; no risk dismissal is claimed. Package versions were left unchanged to preserve the verified application during segregation. Do not run a forced major update without reviewing its compatibility and rerunning checks. [Raw advisory report](evidence/dependency-audit.json).
+No production-security or universal model-accuracy guarantee is claimed. The main
+choices are in [DECISIONS](DECISIONS.md); [TESTING](TESTING.md) explains reproducible
+checks and their boundaries. The candidate should practise the demonstration and
+explain the design during the technical discussion.

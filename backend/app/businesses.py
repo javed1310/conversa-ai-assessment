@@ -12,6 +12,11 @@ from app.contracts import Contract, Identifier, Text, ToolName
 from app.settings import ConfigurationError
 
 
+class StarterQuestion(Contract):
+    title: Annotated[Text, Field(max_length=100)]
+    message: Annotated[Text, Field(max_length=500)]
+
+
 class BusinessConfig(Contract):
     business_id: Identifier
     business_name: Text
@@ -20,6 +25,7 @@ class BusinessConfig(Contract):
     knowledge_base_id: Identifier
     enabled_tools: tuple[ToolName, ...] = Field(min_length=1)
     config_version: Annotated[int, Field(strict=True, ge=1)]
+    starter_questions: Annotated[tuple[StarterQuestion, ...], Field(max_length=3)] = ()
 
     @model_validator(mode="after")
     def unique_tools(self) -> "BusinessConfig":
@@ -32,6 +38,7 @@ class BusinessSummary(Contract):
     business_id: Identifier
     business_name: Text
     agent_role: Text
+    starter_questions: tuple[StarterQuestion, ...] = ()
 
 
 class BusinessList(Contract):
@@ -89,6 +96,7 @@ class BusinessRegistry:
                     business_id=item.business_id,
                     business_name=item.business_name,
                     agent_role=item.agent_role,
+                    starter_questions=item.starter_questions,
                 )
                 for item in self._values.values()
             )
