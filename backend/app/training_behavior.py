@@ -1481,6 +1481,26 @@ class TrainingBehavior(BusinessBehavior):
         dialogue: TurnDialogue,
     ) -> PreparedTurn:
         work.discussed_course_id = dialogue.pending.discussed_course_id
+        # A completed callback is not an open offer. Handle only whole-message
+        # social closings here; mixed questions and new requests still route normally.
+        if dialogue.pending.next_step in {"none", "offer_callback"} and re.fullmatch(
+            r"\s*(?:ok(?:ay)?|yes|thanks|thank you|great|perfect|got it|understood)"
+            r"(?:\s*[,!.]?\s*(?:thanks|thank you))?\s*[.!]*\s*",
+            dialogue.turn.input_text,
+            re.I,
+        ):
+            lead = await LeadActions(service.repo).existing(context)
+            if lead is not None and lead.callback_request_id is not None:
+                work.next_step = "none"
+                return PreparedTurn(
+                    await service.view(context),
+                    ChatResult(
+                        message_id=dialogue.turn.message_id,
+                        session_id=context.session_id,
+                        reply="You're welcome! Let me know if you have another question.",
+                    ),
+                    "social",
+                )
         explanation = await self._explain_previous_failure(context, service, work, dialogue)
         if explanation is not None:
             return PreparedTurn(await service.view(context), explanation, "clarify")

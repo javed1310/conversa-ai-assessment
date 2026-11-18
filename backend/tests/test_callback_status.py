@@ -70,6 +70,33 @@ async def test_yes_to_owned_callback_offer_saves_once(agent_env):
     assert first["callback_request_id"] == later["callback_request_id"]
 
 
+@pytest.mark.parametrize("text", ["okay", "OK!", "thanks", "okay, thanks", "got it", "yes"])
+async def test_acknowledgement_after_callback_does_not_replay_write(agent_env, text):
+    env = agent_env
+    lead = await saved_lead(env)
+    await env.send("Will I get a call?")
+    await env.send("yes")
+    before = await env.storage.db.leads.find_one({"lead_id": lead})
+    requests = len(env.model.requests)
+    result = await env.send(text, steps=[[("requestCallback", {"leadID": lead})]])
+    assert not result.actions and not result.sources
+    assert "question" in result.reply.lower()
+    assert "reference" not in result.reply.lower()
+    assert len(env.model.requests) == requests
+    after = await env.storage.db.leads.find_one({"lead_id": lead})
+    assert before == after
+
+
+async def test_callback_acknowledgement_does_not_swallow_status_question(agent_env):
+    env = agent_env
+    await saved_lead(env)
+    await env.send("Will I get a call?")
+    await env.send("yes")
+    result = await env.send("okay, will I get a callback?")
+    assert "recorded" in result.reply
+    assert not result.actions
+
+
 async def test_decline_does_not_request_callback(agent_env):
     env = agent_env
     lead = await saved_lead(env)

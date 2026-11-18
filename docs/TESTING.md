@@ -113,3 +113,12 @@ packaging must retain the same application source before those observations appl
 Both full and production-only npm audit report zero known vulnerabilities after
 the lint tooling replacement. This is a point-in-time dependency check, not a
 production-security certification.
+
+## Callback acknowledgement regression
+
+After the full 989-test release gate, a focused follow-up fix passed 82 related
+conversation tests (including seven new regression cases), Ruff/format and strict
+types. A whole-message acknowledgement after a recorded callback now returns a
+social reply without model/tool calls or replaying write receipts. Mixed status
+questions still read callback status; accepting an open offer still creates the
+callback. No frontend changes were required.
