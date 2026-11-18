@@ -4,15 +4,18 @@ Python/FastAPI backend, Next.js/TypeScript frontend, MongoDB and Gemini. The tra
 
 ## Local setup
 
-Prerequisites: Python 3.12, Node 24.x/npm, MongoDB 8 (native or Docker), and a Gemini API key with generation/embedding quota. PowerShell commands below start from this repository root.
+Prerequisites: Python 3.12, Node 24.x/npm, MongoDB 8 (native or Docker), and a Gemini API key with generation/embedding quota. Commands below start from this repository root. The setup runner is plain Python,
+so it does not require permission to execute unsigned PowerShell scripts. It
+selects an installed Python 3.12 even when another Python version is first on PATH.
+For Linux/macOS commands, see [portable setup](docs/SETUP.md).
 
 ```powershell
 python -m pip install --target .tools/uv --no-warn-script-location uv==0.13.8
-powershell -NoProfile -File scripts/uv.ps1 sync --locked --all-groups
+python scripts/uv.py sync --locked --all-groups
 npm.cmd --prefix frontend ci --cache .cache/npm --no-fund
 if (-not (Test-Path -LiteralPath .env)) { Copy-Item .env.example .env }
 docker compose -f compose.yaml up -d --wait --wait-timeout 60 mongo
-powershell -NoProfile -File scripts/uv.ps1 run python -m app.seed
+python scripts/uv.py run python -m app.seed
 ```
 
 Native Mongo on `127.0.0.1:27017` can replace the Compose command. Configure root `.env` privately before ingestion/chat:
@@ -31,8 +34,8 @@ Native Mongo on `127.0.0.1:27017` can replace the Compose command. Configure roo
 The complete defaults and bounded retry/worker settings are in [.env.example](.env.example). Optional frontend override: copy `frontend/.env.example` to `frontend/.env.local` and set `ASSESSMENT_API_ORIGIN`; default is `http://127.0.0.1:4000`. Private environment files are excluded from Git.
 
 ```powershell
-powershell -NoProfile -File scripts/uv.ps1 run python -m app.knowledge_cli ingest --version 2
-powershell -NoProfile -File scripts/uv.ps1 run python -m app
+python scripts/uv.py run python -m app.knowledge_cli ingest --version 2
+python scripts/uv.py run python -m app
 ```
 
 Second terminal:
@@ -48,7 +51,7 @@ For a local production build: `npm.cmd --prefix frontend run build`, then `npm.c
 ## Run the checks
 
 ```powershell
-powershell -NoProfile -File scripts/check.ps1
+python scripts/uv.py run python ../scripts/check.py
 ```
 
 Or use the installed backend Python: `python scripts/check.py`. MongoDB is

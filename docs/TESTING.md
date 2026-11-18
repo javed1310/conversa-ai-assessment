@@ -5,7 +5,7 @@
 After setup, from the repository root:
 
 ```powershell
-powershell -NoProfile -File scripts/check.ps1
+python scripts/uv.py run python ../scripts/check.py
 ```
 
 With the installed Python environment, `python scripts/check.py` runs the same
@@ -122,3 +122,11 @@ types. A whole-message acknowledgement after a recorded callback now returns a
 social reply without model/tool calls or replaying write receipts. Mixed status
 questions still read callback status; accepting an open offer still creates the
 callback. No frontend changes were required.
+
+## Setup runner follow-up
+
+Six interpreter-selection tests cover incompatible PATH defaults, installed 3.12
+launcher discovery, explicit overrides and actionable missing-runtime failures.
+Together with callback, enquiry, enrolment guidance and conversational composition
+regressions, 88 tests passed for this setup-only change. The application runtime
+source was not modified. The full earlier suite remains a separate observation.

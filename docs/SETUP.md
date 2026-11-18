@@ -65,3 +65,16 @@ API checks are separate from the rendered component tests. Live model and real-b
 separate evidence categories.
 
 The working-directory distinction follows the [uv CLI reference](https://docs.astral.sh/uv/reference/cli/): `--directory` changes where module commands execute; `--project` selects project metadata/environment.
+
+## Windows interpreter selection and script restrictions
+
+Use `python scripts/uv.py sync --locked --all-groups` from the repository root.
+This runner can start under another installed Python version; it probes for an
+installed 3.12 environment, the Windows `py -3.12` launcher, and versioned Python
+commands before using PATH's default interpreter. An explicit `UV_PYTHON` path is
+validated and respected. Missing/incompatible runtimes produce an actionable
+message; the runner does not download or replace an interpreter.
+
+Use `python scripts/uv.py run python ../scripts/check.py` for the complete gate.
+These commands require no PowerShell execution-policy change. The PowerShell
+wrapper remains a compatibility option where local policy already permits it.
