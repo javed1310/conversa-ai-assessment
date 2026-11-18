@@ -1,0 +1,31 @@
+@font-face {
+  font-family: ConversaDisplay;
+  src: url("/fonts/display.woff2") format("woff2");
+  font-display: swap;
+}
+:root {
+  color-scheme: light;
+  --paper: #f7f6f1;
+  --white: #fff;
+  --cream: #efede4;
+  --ink: #0f1a14;
+  --muted: #5b6660;
+  --lime: #c6f135;
+  --forest: #123524;
+  --mint: #dff5e3;
+  --sky: #e3eefb;
+  --peach: #fce7dc;
+  --butter: #fbf3c8;
+  --error: #8b2929;
+  --line: rgba(15, 26, 20, 0.1);
+  --glass: rgba(255, 255, 255, 0.86);
+  --veil: rgba(15, 26, 20, 0.32);
+  --shadow: 0 24px 80px rgba(15, 26, 20, 0.08);
+  --font-body: Arial, Helvetica, sans-serif;
+  --font-display: ConversaDisplay, "Arial Narrow", Impact, sans-serif;
+  --font-mono: "Courier New", monospace;
+  --display: clamp(64px, 10.8vw, 204px);
+  --radius: 32px;
+  --ease: cubic-bezier(0.76, 0, 0.24, 1);
+  --space: 8px;
+}

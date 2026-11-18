@@ -1,0 +1,110 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "Valid session and completed/processing messages are accepted",
+      "passed": true
+    },
+    {
+      "name": "Valid nested tool receipts and owned policy sources accepted",
+      "passed": true
+    },
+    {
+      "name": "Valid lead summary accepted and foreign summary identity rejected",
+      "passed": true
+    },
+    {
+      "name": "Missing reply rejected",
+      "passed": true
+    },
+    {
+      "name": "Wrong reply type rejected",
+      "passed": true
+    },
+    {
+      "name": "Missing discriminator rejected",
+      "passed": true
+    },
+    {
+      "name": "Unknown status rejected",
+      "passed": true
+    },
+    {
+      "name": "Wrong session rejected",
+      "passed": true
+    },
+    {
+      "name": "Wrong message rejected",
+      "passed": true
+    },
+    {
+      "name": "Malformed nested source rejected",
+      "passed": true
+    },
+    {
+      "name": "Unexpected field rejected",
+      "passed": true
+    },
+    {
+      "name": "Foreign source rejected",
+      "passed": true
+    },
+    {
+      "name": "Missing action status rejected",
+      "passed": true
+    },
+    {
+      "name": "Foreign session-start business rejected",
+      "passed": true
+    },
+    {
+      "name": "Malformed JSON is a safe typed response failure",
+      "passed": true
+    },
+    {
+      "name": "Unvalidated error payload is not reflected to the user",
+      "passed": true
+    },
+    {
+      "name": "Valid backend error code and status are preserved",
+      "passed": true
+    },
+    {
+      "name": "Foreign document and mismatched requested version rejected",
+      "passed": true
+    },
+    {
+      "name": "Foreign list item rejected",
+      "passed": true
+    },
+    {
+      "name": "Completed turn without output rejected",
+      "passed": true
+    },
+    {
+      "name": "Invalid bounds, enums, timestamps and identifiers rejected",
+      "passed": true
+    },
+    {
+      "name": "Caller cancellation and deadline signals are combined",
+      "passed": true
+    },
+    {
+      "name": "Read timeout remains active with a caller signal",
+      "passed": true
+    },
+    {
+      "name": "Same-message retries retain exact body and token",
+      "passed": true
+    },
+    {
+      "name": "Proxy propagates GET cancellation",
+      "passed": true
+    },
+    {
+      "name": "Proxy does not interpret disconnected POST as server cancellation",
+      "passed": true
+    }
+  ],
+  "scope": "Compiled actual frontend client/validator/proxy with intercepted fetch; no live model calls."
+}

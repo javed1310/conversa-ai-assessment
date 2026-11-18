@@ -1,0 +1,25 @@
+name: ai-engagement-assessment
+
+services:
+  mongo:
+    # Official MongoDB 8.0 UBI8 slim image, pinned after the successful pull.
+    image: mongodb/mongodb-community-server:8.0-ubi8-slim@sha256:8b676e66dcc379090b72100ab78b8896c3426c046b60ba137b6c7b17a390b455
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)"
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+volumes:
+  mongo_data:

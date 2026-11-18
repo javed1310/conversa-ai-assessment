@@ -1,0 +1,6 @@
+[
+  {"businessId":"training-institute","courseId":"DS101","name":"Data Science Foundations","category":"data-science","fee":25000,"currency":"INR","schedule":"weekday","availability":"available"},
+  {"businessId":"training-institute","courseId":"DS202","name":"Applied Data Analytics","category":"data-science","fee":28000,"currency":"INR","schedule":"weekend","availability":"available"},
+  {"businessId":"training-institute","courseId":"PY101","name":"Python Basics","category":"python","fee":12000,"currency":"INR","schedule":"weekend","availability":"available"},
+  {"businessId":"training-institute","courseId":"PY202","name":"Advanced Python","category":"python","fee":35000,"currency":"INR","schedule":"weekday","availability":"full"}
+]

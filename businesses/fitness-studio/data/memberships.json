@@ -1,0 +1,4 @@
+[
+  {"businessId":"fitness-studio","membershipId":"FIT-MONTHLY","name":"Monthly Studio Membership","fee":2000,"currency":"INR","durationMonths":1,"description":"Fictional assessment membership: access to studio equipment during opening hours. Policy terms belong in the fitness knowledge base.","fictional":true},
+  {"businessId":"fitness-studio","membershipId":"FIT-QUARTERLY","name":"Quarterly Studio Membership","fee":5400,"currency":"INR","durationMonths":3,"description":"Fictional assessment membership: three months of studio equipment access. No payment or enrolment integration is provided.","fictional":true}
+]
