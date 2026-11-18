@@ -15,8 +15,9 @@ command `npm --prefix frontend test` runs both API checks and rendered component
 
 ## Recorded results
 
-Verification on 18 November 2026 used Python 3.12, Node 24 and local MongoDB on
-Windows. Expected and observed results:
+Verification used Python 3.12, Node 24 and local MongoDB on Windows. The latest
+backend suite passed on 19 November 2026; the recorded checks below span
+18–19 November 2026. Expected and observed results:
 
 | Check | Expected | Actual |
 |---|---|---|
