@@ -12,7 +12,7 @@ No assessment-required feature is intentionally left as a placeholder in this sn
 - Trusted configuration/files are authoritative. New businesses need their own documents/data and registered tools; this is not a customer-uploaded executable plugin system. Source policy truth still depends on trusted document ownership.
 - Python 3.12/Node 24 and the pinned dependencies were qualified on the development host. Reviewers need to install prerequisites; cached same-host verification is not proof of a clean operating-system installation.
 
-Main technical decisions and extension approaches are in [DECISIONS](DECISIONS.md) and [EXTENDING](EXTENDING.md). Production hosting/authentication, maintained-runtime rollout, cross-channel customer identity and real integrations would need additional work after the assessment. No remote repository publication or automatic account billing change is performed.
+Main technical decisions and extension approaches are in [DECISIONS](DECISIONS.md) and [EXTENDING](EXTENDING.md). Production hosting/authentication, maintained-runtime rollout, cross-channel customer identity and real integrations would need additional work after the assessment. Publishing the source repository does not deploy the application. No automatic account billing change is performed.
 
 ## Dependency audit at segregation time
 

@@ -65,6 +65,6 @@ See [test commands and expected/actual results](docs/TESTING.md) before running 
 - [Requirement coverage](docs/REQUIREMENTS.md).
 - [Machine-readable API/domain contracts](docs/contracts).
 
-This source has its own clean Git snapshot. No remote publication is performed. The companion `.bundle` is cloneable Git source/history; the ZIP is the same source without `.git`. API keys, installed dependencies, local databases, build outputs and old development history are not part of either handoff.
+This source has its own clean Git snapshot. Submission repository: [javed1310/conversa-ai-assessment](https://github.com/javed1310/conversa-ai-assessment). The companion `.bundle` is cloneable Git source/history; the ZIP is the same source without `.git`. API keys, installed dependencies, local databases, build outputs and old development history are not part of either handoff.
 
 Dependency advisories discovered during clean-copy verification are disclosed in [LIMITATIONS](docs/LIMITATIONS.md); segregation does not constitute a security-clean or production-readiness claim.
