@@ -31,8 +31,12 @@ class BehaviorRegistry:
 
 
 def build_behaviors() -> BehaviorRegistry:
+    from app.membership_behavior import MembershipBehavior
     from app.training_behavior import TrainingBehavior
 
     return BehaviorRegistry(
-        (BehaviorDefinition(frozenset({"getCourseDetails"}), TrainingBehavior),)
+        (
+            BehaviorDefinition(frozenset({"getCourseDetails"}), TrainingBehavior),
+            BehaviorDefinition(frozenset({"getMembershipDetails"}), MembershipBehavior),
+        )
     )

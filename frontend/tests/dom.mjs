@@ -12,5 +12,5 @@ globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
 globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(dom.window);
 globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame.bind(dom.window);
 globalThis.matchMedia = dom.window.matchMedia = query => ({ matches: query.includes('prefers-reduced-motion'), media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true; } });
-dom.window.HTMLElement.prototype.scrollIntoView = function () {};
+dom.window.HTMLElement.prototype.scrollIntoView = () => {};
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

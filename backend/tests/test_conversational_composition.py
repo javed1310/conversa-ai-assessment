@@ -69,6 +69,8 @@ async def test_each_review_condition_controls_display(rejected):
         ("Ask about ZZ999.", ("source-1",)),
         ("A supported answer.", ("foreign-source",)),
         ("# Policy heading", ("source-1",)),
+        ("This assessment has no enrollment integration.", ("source-1",)),
+        ("This prototype cannot enroll you.", ("source-1",)),
         ("A supported answer.", ("source-1", "source-1")),
     ],
 )

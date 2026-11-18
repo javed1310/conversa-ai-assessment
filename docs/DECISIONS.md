@@ -19,3 +19,18 @@
 | Functional trusted local UI | Four screens use real APIs. Production auth/deployment and extra admin editors are outside the requested prototype scope. |
 
 See [architecture](ARCHITECTURE.md), [extension guide](EXTENDING.md), [tests](TESTING.md) and [limits](LIMITATIONS.md).
+
+## Read-path and tooling refinements
+
+- Clear catalogue searches use literal, evidence-validated state extraction to
+  avoid a redundant provider call. Tool choice remains with the agent. Registered
+  read completion avoids further model calls after a sufficient validated result.
+  Neither change skips write validation, business boundaries or consent checks.
+- Membership focus is reconstructed from the owning session's displayed receipts
+  and refreshed through its own tool. No training workflow is enabled for fitness.
+- Biome replaces the ESLint dependency chains affected by the unpatched picomatch
+  advisory. TypeScript checking, component tests and build remain separate gates.
+  The configuration deliberately excludes additional stylistic/accessibility
+  policies that the previous lint stack did not enforce; this is a tooling change,
+  not a UI rewrite. Biome's recommended checks and Next.js rules otherwise apply.
+  No npm audit finding is ignored or suppressed.

@@ -143,3 +143,43 @@ async def test_direct_request_with_qualified_contacts_saves_only_owned_course(
     lead = await env.storage.db.leads.find_one({})
     assert lead["customer"]["course_id"] == "DS101"
     assert lead.get("callback_request_id") is None
+
+
+@pytest.mark.parametrize("text", ["i want toenquire about it", "I want to enquire about it"])
+async def test_redundant_inferred_course_does_not_abort_enquiry(agent_env, monkeypatch, text):
+    env = agent_env
+    await select_first(env)
+    classify(env, monkeypatch)
+    result = await env.send(text, changes=[change("course_id", "DS101", "it")])
+    assert "name" in result.reply and "phone number" in result.reply
+    assert not result.actions
+    session = await env.storage.db.sessions.find_one({"session_id": result.session_id})
+    assert session["state"]["fields"]["course_id"] == "DS101"
+    assert await env.storage.db.leads.count_documents({}) == 0
+    monkeypatch.undo()
+    saved = await env.send("Rahul 9876543210")
+    assert "Your enquiry is saved" in saved.reply
+    lead = await env.storage.db.leads.find_one({})
+    assert lead["customer"]["course_id"] == "DS101"
+    assert lead.get("callback_request_id") is None
+
+
+@pytest.mark.parametrize(
+    "field,value,excerpt",
+    [
+        ("course_id", "DS202", "it"),
+        ("course_id", "DS101", "fabricated excerpt"),
+        ("name", "Invented", "it"),
+        ("budget", "12000", "it"),
+    ],
+)
+async def test_enquiry_still_rejects_unsupported_customer_changes(
+    agent_env, monkeypatch, field, value, excerpt
+):
+    env = agent_env
+    await select_first(env)
+    classify(env, monkeypatch)
+    result = await env.send("i want toenquire about it", changes=[change(field, value, excerpt)])
+    assert "couldn't complete" in result.reply
+    assert not result.actions
+    assert await env.storage.db.leads.count_documents({}) == 0

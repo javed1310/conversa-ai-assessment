@@ -3,8 +3,8 @@
 import ast
 from pathlib import Path
 
-from app.behavior import BusinessBehavior
 from app.businesses import BusinessConfig, BusinessRegistry
+from app.membership_behavior import MembershipBehavior
 from app.repositories import Repository
 from app.tools import ToolRegistry
 from app.training_behavior import TrainingBehavior
@@ -31,7 +31,7 @@ def test_shared_agent_contains_no_course_or_membership_dispatch():
     )
 
 
-async def test_fitness_uses_generic_behavior_without_course_reads(agent_env, monkeypatch):
+async def test_fitness_uses_membership_behavior_without_course_reads(agent_env, monkeypatch):
     env = agent_env
 
     async def unexpected(*args, **kwargs):
@@ -53,7 +53,7 @@ async def test_fitness_uses_generic_behavior_without_course_reads(agent_env, mon
     assert "INR" in result.reply
     assert (
         type(env.engine.behaviors.for_business(env.registry.get("fitness-studio"), env.engine))
-        is BusinessBehavior
+        is MembershipBehavior
     )
     assert isinstance(
         env.engine.behaviors.for_business(env.registry.get("training-institute"), env.engine),

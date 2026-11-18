@@ -1,6 +1,7 @@
 """Lifespan-local provider admission, inherited work deadlines and bounded retry delays."""
 
 import asyncio
+import logging
 import math
 import random
 from collections.abc import AsyncIterator, Iterator
@@ -8,13 +9,15 @@ from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
-from time import monotonic
+from time import monotonic, perf_counter
 from typing import Any, Literal
 
 import httpx
 
 from app.measurements import count, stage
 from app.settings import Settings
+
+logger = logging.getLogger(__name__)
 
 Lane = Literal["chat", "background"]
 _deadline: ContextVar[float | None] = ContextVar("provider_deadline", default=None)
@@ -175,14 +178,53 @@ class ProviderControl:
         attempt_seconds: float,
         kind: Literal["generation", "embedding"],
     ) -> httpx.Response:
-        async with asyncio.timeout(attempt_seconds):
-            count(kind + "_http_attempts")
-            return await client.post(
-                url,
-                headers=headers,
-                json=payload,
-                timeout=httpx.Timeout(attempt_seconds, connect=min(5, attempt_seconds)),
-                follow_redirects=False,
+        started = perf_counter()
+        outcome = "cancelled"
+        status = 0
+        try:
+            async with asyncio.timeout(attempt_seconds):
+                count(kind + "_http_attempts")
+                response = await client.post(
+                    url,
+                    headers=headers,
+                    json=payload,
+                    timeout=httpx.Timeout(attempt_seconds, connect=min(5, attempt_seconds)),
+                    follow_redirects=False,
+                )
+                status = response.status_code
+                outcome = "returned"
+                if status == 429:
+                    count("provider_http_rate_limits")
+                elif status >= 500:
+                    count("provider_http_server_errors")
+                return response
+        except httpx.TimeoutException as error:
+            outcome = type(error).__name__
+            counter = {
+                "ConnectTimeout": "provider_connect_timeouts",
+                "ReadTimeout": "provider_read_timeouts",
+                "WriteTimeout": "provider_write_timeouts",
+                "PoolTimeout": "provider_pool_timeouts",
+            }.get(outcome, "provider_other_timeouts")
+            count(counter)
+            raise
+        except TimeoutError:
+            outcome = "ATTEMPT_DEADLINE"
+            count("provider_attempt_deadlines")
+            raise
+        except httpx.RequestError:
+            outcome = "NETWORK_ERROR"
+            count("provider_network_errors")
+            raise
+        finally:
+            # Only numeric/enum metadata: never URL, headers, prompts or response text.
+            log = logger.info if outcome == "returned" and status < 400 else logger.warning
+            log(
+                "provider_http kind=%s outcome=%s status=%d duration_ms=%.1f",
+                kind,
+                outcome,
+                status,
+                (perf_counter() - started) * 1000,
             )
 
     @stage("provider_backoff")

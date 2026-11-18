@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import re
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -79,9 +80,16 @@ class ToolDefinition[Arguments: Contract, Result: Contract]:
     deferred: bool = False
     presentation: Callable[[Result], str] | None = None
     current_facts: bool = False
+    completes_read: Callable[[str], bool] | None = None
 
     def __post_init__(self) -> None:
         TypeAdapter(ToolName).validate_python(self.name)
+        if self.completes_read is not None and (
+            self.presentation is None
+            or self.deferred
+            or self.name in {"createLead", "requestCallback"}
+        ):
+            raise ValueError("Read completion requires a synchronous read presentation")
         if (
             self.name
             not in {
@@ -136,16 +144,42 @@ async def membership_details(
     return MembershipResult(memberships=members)
 
 
-def render_memberships(result: MembershipResult) -> str:
-    return (
-        "\n".join(
-            f"{member.name}: INR {member.fee:g} for {member.duration_months} months. "
-            f"{member.description}"
-            for member in result.memberships
+def membership_read_question(text: str) -> bool:
+    """Only membership catalogue facts are complete after this lookup, never policies/actions."""
+    return bool(
+        re.search(r"\b(memberships?|plans?)\b", text, re.I)
+        and re.search(r"\b(what|which|show|list|options?|available|fees?|cost|price)\b", text, re.I)
+        and not re.search(
+            r"[\"`]|\b(and|also|but|then|trial|refund|polic(?:y|ies)|cancel|cancellation|"
+            r"enrol|enroll|join|book|pay|save|create|callback|trainer|qualifications?|"
+            r"eligibility|hours|opening|medical|guarantee|instead|ignore|override)\b",
+            text,
+            re.I,
         )
-        if result.memberships
-        else "No matching membership was found."
     )
+
+
+def render_memberships(result: MembershipResult) -> str:
+    rows = []
+    for member in result.memberships:
+        # Fixture annotations remain in stored records, not customer-facing copy.
+        description = re.sub(
+            r"^Fictional assessment membership:\s*", "", member.description, flags=re.I
+        )
+        for internal_sentence in (
+            "Policy terms belong in the fitness knowledge base.",
+            "No payment or enrolment integration is provided.",
+        ):
+            description = description.replace(internal_sentence, "")
+        description = description.strip()
+        if description:
+            description = description[0].upper() + description[1:]
+        unit = "month" if member.duration_months == 1 else "months"
+        rows.append(
+            f"{member.name}: INR {member.fee:g} for {member.duration_months} {unit}."
+            + (f" {description}" if description else "")
+        )
+    return "\n".join(rows) if rows else "No matching membership was found."
 
 
 async def create_lead(
@@ -244,6 +278,7 @@ def build_tool_registry() -> ToolRegistry:
                 membership_details,
                 presentation=render_memberships,
                 current_facts=True,
+                completes_read=membership_read_question,
             ),
             ToolDefinition(
                 "createLead",

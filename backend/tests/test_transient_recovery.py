@@ -175,3 +175,29 @@ async def test_changed_payload_cannot_reopen_failed_identity(api):
     assert (await client.post(url, headers=headers, json=body)).status_code == 503
     changed = {**body, "content": "Different request"}
     assert (await client.post(url, headers=headers, json=changed)).status_code == 409
+
+
+@pytest.mark.parametrize(
+    "detail,expected",
+    [
+        ("DAILY_QUOTA", "daily request quota is exhausted"),
+        ("", "temporarily rate-limited"),
+    ],
+)
+async def test_provider_rate_limit_has_clear_customer_error_without_losing_retry_identity(
+    api, detail, expected
+):
+    client, _, engine, storage = api
+
+    async def respond(context, message):
+        raise ProviderFailure("RATE_LIMIT", True, detail=detail)
+
+    engine.respond = respond
+    session, url, headers = await start(client)
+    body = payload()
+    result = await client.post(url, headers=headers, json=body)
+    assert result.status_code == 503
+    assert result.json()["error"]["code"] == "RATE_LIMIT"
+    assert expected in result.json()["error"]["message"]
+    turn = await storage.db.turns.find_one({"session_id": session["sessionId"]})
+    assert turn["failure_code"] == "RATE_LIMIT" and turn["status"] == "failed"

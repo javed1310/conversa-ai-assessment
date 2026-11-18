@@ -40,6 +40,8 @@ async def saved_lead(env):
         "okay so will i get a call after this or what",
         "Will someone call me?",
         "Has my callback been requested?",
+        "will get a callback",
+        "now what should i do",
     ],
 )
 async def test_status_question_never_requests_callback(agent_env, text):
@@ -138,4 +140,59 @@ async def test_decline_after_failed_callback_clears_old_consent(agent_env):
     await env.send("no thanks")
     session = await env.storage.db.sessions.find_one({"session_id": env.context.session_id})
     assert session["state"]["callback_intent"] is None
+    assert (await env.storage.db.leads.find_one({"lead_id": lead}))["callback_request_id"] is None
+
+
+async def test_next_steps_then_fragmented_callback_question_only_writes_after_yes(agent_env):
+    env = agent_env
+    lead = await saved_lead(env)
+    for text in ["now what should i do", "will get a callback"]:
+        before = len(env.model.requests)
+        result = await env.send(text)
+        assert "callback hasn't been requested" in result.reply
+        assert "Would you like" in result.reply
+        assert not result.actions and len(env.model.requests) == before
+        assert await env.storage.db.leads.count_documents({}) == 1
+        assert (await env.storage.db.leads.find_one({"lead_id": lead}))[
+            "callback_request_id"
+        ] is None
+    result = await env.send("yes")
+    assert [a.result.tool for a in result.actions] == ["requestCallback"]
+    assert result.actions[0].result.status == "success"
+    assert (await env.storage.db.leads.find_one({"lead_id": lead}))[
+        "callback_request_id"
+    ] is not None
+    first = await env.storage.db.leads.find_one({"lead_id": lead})
+    status = await env.send("will get a callback")
+    assert "recorded" in status.reply and "not" in status.reply
+    later = await env.storage.db.leads.find_one({"lead_id": lead})
+    assert first["callback_request_id"] == later["callback_request_id"]
+    assert await env.storage.db.leads.count_documents({}) == 1
+
+
+@pytest.mark.parametrize(
+    "text,intent",
+    [
+        ("Alright, where do we go from here? What happens now?", "next_steps"),
+        ("When can I expect someone to contact me?", "callback_status"),
+    ],
+)
+async def test_semantic_post_enquiry_questions_only_offer_callback(
+    agent_env, monkeypatch, text, intent
+):
+    from app.generation import PostEnquirySelection
+
+    env = agent_env
+    lead = await saved_lead(env)
+    original = env.engine.generation._structured
+
+    async def structured(model, system, data, **kwargs):
+        if model is PostEnquirySelection:
+            return PostEnquirySelection(intent=intent, excerpt=text)
+        return await original(model, system, data, **kwargs)
+
+    monkeypatch.setattr(env.engine.generation, "_structured", structured)
+    result = await env.send(text)
+    assert "Would you like me to request" in result.reply
+    assert not result.actions
     assert (await env.storage.db.leads.find_one({"lead_id": lead}))["callback_request_id"] is None

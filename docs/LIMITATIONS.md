@@ -7,11 +7,6 @@
   model/project quota. Output can fail validation; repairs/retries are bounded.
   Evidence-linked wording is checked and has factual/receipt fallbacks, but model
   judgments remain probabilistic and may add latency.
-- Full npm audit retains 12 high affected development-package entries for the
-  upstream [picomatch advisory](https://github.com/advisories/GHSA-fc5q-39xc-vjpf).
-  No patched version was listed at verification. The production-only audit reports
-  zero. Full dependency remediation is not complete; a compatible patch or a
-  separately reviewed lint-stack migration is still needed. Checks are not suppressed.
 - Windows is qualified. Portable setup commands are provided, but Linux/macOS
   execution is unverified. The optional browser harness uses Windows process paths.
 - External messaging and CRM notifications are local simulations. A saved callback

@@ -487,3 +487,41 @@ async def test_counselor_plan_rejects_model_owned_identity_or_action_claims():
         with pytest.raises(ProviderFailure) as error:
             await GenerationService(provider).plan_summary({"customerHistory": ["I want Python"]})
         assert error.value.code == "INVALID_STRUCTURED_OUTPUT"
+
+
+@pytest.mark.parametrize(
+    "accepted,excerpt,expected",
+    [
+        (True, "okay perfect, how can I enroll?", True),
+        (False, "okay perfect, how can I enroll?", False),
+        (True, "another customer's question", False),
+    ],
+)
+async def test_enrollment_process_classifier_is_bound_to_current_message(
+    accepted, excerpt, expected
+):
+    async with client_for(
+        structured({"processQuestion": accepted, "excerpt": excerpt})
+    ) as provider:
+        result = await GenerationService(provider).is_enrollment_process_question(
+            "okay perfect, how can I enroll?"
+        )
+        assert result is expected
+
+
+@pytest.mark.parametrize(
+    "intent,excerpt,expected",
+    [
+        ("next_steps", "What happens now?", "next_steps"),
+        ("callback_status", "What happens now?", "callback_status"),
+        ("other", "What happens now?", "other"),
+        ("next_steps", "a different turn", "other"),
+    ],
+)
+async def test_post_enquiry_intent_is_read_only_and_bound_to_current_turn(
+    intent, excerpt, expected
+):
+    async with client_for(structured({"intent": intent, "excerpt": excerpt})) as provider:
+        assert (
+            await GenerationService(provider).post_enquiry_question("What happens now?") == expected
+        )

@@ -21,7 +21,7 @@ Windows. Expected and observed results:
 | Check | Expected | Actual |
 |---|---|---|
 | Backend lint/format/strict types/contracts | Pass | Pass |
-| Backend test suite | All tests pass | 882 passed |
+| Backend test suite | All tests pass | 989 passed |
 | Frontend API/validator/proxy checks | All checks pass | 26 passed |
 | React component interaction tests | All tests pass | 18 passed |
 | Browser integration | All checks pass; no JavaScript exceptions | 22 passed |
@@ -98,3 +98,18 @@ owned databases. It never reads existing application customer records. Generated
 reports are ignored by Git. Model accuracy and latency vary; deterministic tests
 are not a guarantee of every future live reply. The recorded live check on 18 November 2026 passed all ten scenarios; it is a
 scoped observation, not a guarantee of future model responses or quota.
+
+## Recent regression coverage
+
+Catalogue literal-fact/provenance tests, membership reference/completion tests,
+enrolment guidance, saved-enquiry/callback status, and provider diagnostic tests
+cover the conversation failures found during manual testing. Controlled timeout
+and quota tests verify bounded recovery without duplicate writes. The exact
+assignment example was also checked with Gemini: selecting the second course,
+asking about weekends, collecting contact details, then saving a lead and using
+its returned ID for a successful callback. Live evidence predates packaging only;
+packaging must retain the same application source before those observations apply.
+
+Both full and production-only npm audit report zero known vulnerabilities after
+the lint tooling replacement. This is a point-in-time dependency check, not a
+production-security certification.

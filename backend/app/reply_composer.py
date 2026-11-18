@@ -50,6 +50,7 @@ class ReplyComposer:
             len(candidate) > 8000
             or contains_action_status_claim(candidate)
             or re.search(r"(?m)^\s*#{1,6}\s", candidate)
+            or re.search(r"\bthis (?:assessment|prototype|demo)\b", candidate, re.I)
         ):
             count("conversational_reply_rejected")
             return fallback

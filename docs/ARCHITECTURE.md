@@ -67,3 +67,23 @@ flowchart TD
 Budget proposals and source evidence use the same numeric normalization. Search lists preserve server-owned ordering through final rendering, so ordinal selections refer to the displayed courses. Acknowledgements of preference changes require a saved change from the current customer turn.
 
 Mongo holds scoped business records, sessions, turns, lead/events, documents/chunks and execution records. Configuration remains file-authoritative. There is no real external messaging/CRM delivery or payment/enrollment integration. See [extensions](EXTENDING.md), [decisions](DECISIONS.md) and [limitations](LIMITATIONS.md).
+
+## Conversation completion and latency boundaries
+
+Training and fitness dialogue live in registered business behaviors, rather than
+channel-specific engine branches. Membership ordinal references are resolved from
+that session's displayed tool receipts, followed by a fresh membership read.
+They do not populate course-selection state or enable institute-only writes.
+
+For a plain, complete catalogue-search request, a bounded parser can propose only
+facts literally present in the message. Normal provenance/state validation still
+runs, and Gemini still chooses the tool. Corrections, mixed requests and pending
+write workflows use the full extraction path. No current price is cached here.
+Registered validated read results may finish a turn without another model call;
+this completion metadata cannot bypass tool permissions or confirm a write.
+
+Enrolment guidance offers an enquiry, collects missing contact details and uses
+actual lead receipts. Saved-enquiry guidance and callback status are separate:
+a status question does not create consent for a new callback. Daily quota errors
+are reported clearly without futile immediate retries. Timings and counters omit
+customer payloads and provider credentials.

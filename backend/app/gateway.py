@@ -270,6 +270,18 @@ class Gateway:
                 await sessions.update_one(gate, {"$unset": unset})
                 if isinstance(error, (RecordConflict, RecordNotFound)):
                     raise
+            if isinstance(error, ProviderFailure) and error.code == "RATE_LIMIT":
+                raise GatewayFailure(
+                    503,
+                    "RATE_LIMIT",
+                    (
+                        "The AI provider's daily request quota is exhausted. "
+                        "Retry this same message after the quota resets."
+                        if error.detail == "DAILY_QUOTA"
+                        else "The AI provider is temporarily rate-limited. "
+                        "Please retry this same message later."
+                    ),
+                ) from None
             raise GatewayFailure(
                 503, "ENGINE_FAILURE", "Message processing could not complete."
             ) from None

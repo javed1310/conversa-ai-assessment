@@ -266,6 +266,10 @@ class GeminiAgent:
                         work.failures.append("UNAVAILABLE")
                         result = {"status": "failure", "code": "UNAVAILABLE"}
                     outputs.append(ToolOutput(call.call_id, encode(result)))
+                completed = await behavior.completed_read_reply(context, service, work, dialogue)
+                if completed is not None:
+                    await self._trace(context, repo, work, "evidence")
+                    return completed
                 conversation = await self.provider.continue_with(
                     conversation,
                     tuple(outputs),
@@ -300,6 +304,13 @@ class GeminiAgent:
             )
         except ProviderFailure as error:
             work.failures.append(error.code + (":" + error.detail if error.detail else ""))
+            if error.retryable and error.code in {"TIMEOUT", "UNAVAILABLE", "RATE_LIMIT"}:
+                verified_reply = await behavior.completed_read_reply(
+                    context, service, work, dialogue
+                )
+                if verified_reply is not None:
+                    await self._trace(context, repo, work, "evidence")
+                    return verified_reply
             if (
                 error.retryable
                 and error.code in {"TIMEOUT", "UNAVAILABLE", "RATE_LIMIT"}

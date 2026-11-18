@@ -19,6 +19,41 @@ def safe_discussion_choice(text: str) -> bool:
     )
 
 
+def enrollment_process_candidate(text: str) -> bool:
+    """A cheap relevance gate, not authority to classify intent or perform actions."""
+    return bool(
+        not re.search(
+            r"[\"`]|\b(no|not|never|don't|refund|fees?|price|availability|eligibility|"
+            r"prerequisites?|callback|call me|my name|my phone|budget|ignore|override)\b|\d{6,}",
+            text.replace("\u2019", "'"),
+            re.I,
+        )
+        and re.search(
+            r"\b(enroll?(?:ing)?|enrolment|enrollment|join|joining|registration|admission)\b",
+            text,
+            re.I,
+        )
+        and re.search(r"\b(process|procedure|steps?|how|what)\b", text, re.I)
+    )
+
+
+def asks_enrollment_next_step(text: str) -> bool:
+    """A process question offers an enquiry; it never authorizes a write."""
+    return (
+        re.fullmatch(
+            r"\s*(?:if\s+i\s+(?:want|would like)\s+to\s+(?:enrol|enroll|join)"
+            r"(?:\s+(?:it|this course|that course))?\s*[,;]?\s*"
+            r"what\s+(?:should|would)\s+be\s+(?:the|my)\s+next\s+steps?"
+            r"|what\s+(?:is|are)\s+(?:the|my)\s+next\s+steps?\s+"
+            r"(?:to|for)\s+(?:enrol|enroll|enrolling|enrolment|enrollment|joining)"
+            r"(?:\s+(?:it|this course|that course))?)\s*[?.!]*\s*",
+            text,
+            re.I,
+        )
+        is not None
+    )
+
+
 def starts_discussed_enquiry(text: str) -> bool:
     """A narrow request to proceed with this course, never payment/enrolment execution."""
     if re.search(
@@ -58,6 +93,34 @@ def expresses_discussed_interest(text: str) -> bool:
     )
 
 
+def post_enquiry_question_candidate(text: str) -> bool:
+    """Only route read-only follow-ups; corrections and business questions stay separate."""
+    return bool(
+        len(text) <= 1000
+        and not re.search(
+            r"[\"`]|\b(and|also|but|refund|policy|fees?|price|budget|schedule|weekends?|"
+            r"weekdays?|availability|eligibility|prerequisites?|my name|my phone|instead|"
+            r"another|different|ignore|override)\b|\d{6,}",
+            text,
+            re.I,
+        )
+        and re.search(r"\b(next|now|what|how|will|when|callback|call|contact)\b", text, re.I)
+    )
+
+
+def asks_after_enquiry_next_step(text: str) -> bool:
+    return (
+        re.fullmatch(
+            r"\s*(?:(?:okay|ok|great|thanks)\s*[,!.]?\s*)?(?:now\s+)?"
+            r"(?:what\s+should\s+i\s+do(?:\s+now)?|what(?:'s| is)\s+next|"
+            r"what\s+(?:are|is)\s+(?:my|the)\s+next\s+steps?)\s*[?.!]*\s*",
+            text,
+            re.I,
+        )
+        is not None
+    )
+
+
 def callback_status_question(text: str) -> bool:
     """A narrow status question, not an instruction to call or a mixed request."""
     if re.search(
@@ -69,7 +132,7 @@ def callback_status_question(text: str) -> bool:
         return False
     return bool(
         re.search(
-            r"\bwill\s+(?:i|we)\s+(?:get|receive)\s+(?:a\s+)?(?:call|callback)\b|"
+            r"\bwill\s+(?:(?:i|we)\s+)?(?:get|receive)\s+(?:a\s+)?(?:call|callback)\b|"
             r"\bwill\s+(?:someone|somebody|you|a counselor|a counsellor)\s+call\s+me\b|"
             r"\b(?:has|is|was)\s+(?:my|the)\s+callback\s+(?:been\s+)?"
             r"(?:requested|recorded|scheduled|confirmed)\b",

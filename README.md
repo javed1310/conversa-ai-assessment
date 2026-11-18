@@ -71,6 +71,7 @@ notifications are simulated; no payment or direct enrolment is implemented.
 Current prices and availability come from tools, while policy answers cite
 business documents. A callback request is confirmed only from a saved tool result.
 
-The full development dependency audit retains 12 high affected-package entries
-for an upstream unpatched advisory; the production-only audit reports zero.
+Frontend linting uses Biome and TypeScript remains checked separately. The full
+and production-only npm dependency audits report zero known vulnerabilities at
+verification.
 See the limitations before exposing this trusted local workspace publicly.

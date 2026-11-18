@@ -61,6 +61,57 @@ class BusinessBehavior:
         # Generic businesses retain conversation history without interpreting it as course state.
         return PreparedTurn(state=await service.view(context))
 
+    async def completed_read_reply(
+        self,
+        context: ExecutionContext,
+        service: StateService,
+        work: TurnWork,
+        dialogue: TurnDialogue,
+    ) -> ChatResult | None:
+        """Registered read handlers can declare that their checked result is complete."""
+        business = self.businesses.get(context.business_id)
+        if (
+            business is None
+            or not work.actions
+            or work.failures
+            or any(
+                operation != "readKnowledge"
+                and operation not in {action.result.tool for action in work.actions}
+                for operation in work.operations
+            )
+        ):
+            return None
+        for action in work.actions:
+            definition = self.tools.get(action.result.tool)
+            if (
+                action.result.status != "success"
+                or action.result.tool not in business.enabled_tools
+                or definition is None
+                or definition.completes_read is None
+            ):
+                return None
+            try:
+                if definition.completes_read(dialogue.turn.input_text) is not True:
+                    return None
+            except Exception:
+                return None
+        keys = tuple(
+            item.key
+            for item in work.evidence
+            if item.action is not None and item.action in work.actions
+        )
+        if len(keys) != len(work.actions):
+            return None
+        work.response_locked = True
+        return await self._assemble(
+            context,
+            service,
+            await service.view(context),
+            ReplySelection(kind="evidence", evidence_keys=keys, clarification="none"),
+            work,
+            dialogue,
+        )
+
     async def context_fields(
         self,
         context: ExecutionContext,

@@ -23,6 +23,34 @@ class ProviderFailure(RuntimeError):
         self.detail = detail
 
 
+def daily_quota_exhausted(response: httpx.Response) -> bool:
+    """Read only structured quota identifiers; never expose the provider error body."""
+    try:
+        body = response.json()
+    except ValueError:
+        return False
+    error = body.get("error") if isinstance(body, dict) else None
+    details = error.get("details") if isinstance(error, dict) else None
+    if not isinstance(details, list):
+        return False
+    for detail in details:
+        if not isinstance(detail, dict) or detail.get("@type") != (
+            "type.googleapis.com/google.rpc.QuotaFailure"
+        ):
+            continue
+        violations = detail.get("violations")
+        if not isinstance(violations, list):
+            continue
+        if any(
+            isinstance(item, dict)
+            and isinstance(item.get("quotaId"), str)
+            and "RequestsPerDay" in item["quotaId"]
+            for item in violations
+        ):
+            return True
+    return False
+
+
 def encode(value: object) -> str:
     try:
         return json.dumps(value, allow_nan=False, ensure_ascii=False)
@@ -124,8 +152,10 @@ class GeminiClient:
                             attempt_seconds=self.settings.provider_generation_attempt_seconds,
                             kind="generation",
                         )
-                    except (httpx.TimeoutException, TimeoutError):
-                        failure = ProviderFailure("TIMEOUT", True)
+                    except httpx.TimeoutException as error:
+                        failure = ProviderFailure("TIMEOUT", True, detail=type(error).__name__)
+                    except TimeoutError:
+                        failure = ProviderFailure("TIMEOUT", True, detail="ATTEMPT_DEADLINE")
                     except httpx.RequestError as error:
                         failure = ProviderFailure("UNAVAILABLE", True, detail=type(error).__name__)
                     else:
@@ -145,6 +175,10 @@ class GeminiClient:
                         if response.status_code == 404:
                             raise ProviderFailure("MODEL_UNAVAILABLE")
                         if response.status_code == 429:
+                            if daily_quota_exhausted(response):
+                                # Keep explicit same-message recovery available after reset,
+                                # but do not spend more HTTP attempts on an exhausted day.
+                                raise ProviderFailure("RATE_LIMIT", True, detail="DAILY_QUOTA")
                             failure = ProviderFailure("RATE_LIMIT", True)
                         elif response.status_code >= 500:
                             failure = ProviderFailure(
@@ -159,7 +193,7 @@ class GeminiClient:
         except ProviderControlFailure as error:
             raise ProviderFailure(error.code, True) from None
         except TimeoutError:
-            raise ProviderFailure("TIMEOUT", True) from None
+            raise ProviderFailure("TIMEOUT", True, detail="OPERATION_DEADLINE") from None
         raise ProviderFailure("UNAVAILABLE", True)
 
     def _parse(

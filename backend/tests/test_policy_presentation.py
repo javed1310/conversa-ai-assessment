@@ -44,3 +44,30 @@ def test_prerequisite_answer_is_conversational_without_agreeing_to_wrong_premise
     )
     assert reply == "For Advanced Python (PY202), you'll need basic programming knowledge."
     assert not reply.startswith("Yes")
+
+
+def test_internal_assessment_language_becomes_customer_capability_limit():
+    source = (
+        "An enquiry is not enrolment or a seat reservation. "
+        "This assessment has no payment or enrolment integration."
+    )
+    reply = policy_reply(source, "Is an enquiry enrollment?")
+    assert "An enquiry is not enrolment or a seat reservation" in reply
+    assert "I can't take payments or complete enrollment here" in reply
+    assert "assessment" not in reply.lower()
+    assert "This assessment" in source
+
+
+def test_real_business_assessment_rules_are_not_rewritten_as_assistant_capabilities():
+    source = "This assessment does not require prior coding knowledge."
+    assert policy_reply(source, "What are the assessment prerequisites?") == source
+
+
+def test_fitness_internal_scope_is_explained_as_capabilities():
+    reply = policy_reply(
+        "This assessment does not create fitness leads, callbacks, payments or enrolments.",
+        "Can you arrange membership enrollment?",
+    )
+    assert "assessment" not in reply.lower()
+    assert "can't save fitness enquiries" in reply
+    assert "take payments or complete enrollment" in reply

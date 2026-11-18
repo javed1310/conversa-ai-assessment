@@ -156,7 +156,19 @@ def policy_reply(text: str, question: str) -> str:
     answer = re.sub(r"\*\*([^*]+)\*\*", r"\1", answer)
     answer = re.sub(r"`([^`]+)`", r"\1", answer)
     answer = re.sub(r"\bA customer should\b", "You should", answer)
-    answer = re.sub(r"\bThis prototype does not\b", "I can't", answer)
+    answer = re.sub(
+        r"\bThis (?:assessment|prototype|demo) has no payment or enrolment integration\.",
+        "I can't take payments or complete enrollment here.",
+        answer,
+        flags=re.I,
+    )
+    answer = answer.replace(
+        "This assessment does not create fitness leads, callbacks, payments or enrolments.",
+        "I can't save fitness enquiries, request callbacks, "
+        "take payments or complete enrollment here.",
+    )
+    answer = re.sub(r"\bThis (?:prototype|demo) does not\b", "I can't", answer, flags=re.I)
+    answer = re.sub(r"\bThis (?:prototype|demo)\b", "This assistant", answer, flags=re.I)
     answer = re.sub(
         r"\bOne (introductory trial visit) is available per person, subject to (.+?)\.",
         r"You can have one \1 per person, subject to \2.",
