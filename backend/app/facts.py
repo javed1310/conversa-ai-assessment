@@ -73,6 +73,19 @@ def requests_current_facts(text: str) -> bool:
     )
 
 
+def explicit_fee_question(text: str) -> bool:
+    """A conservative completeness cue, never authority for a price without a tool."""
+    if re.search(r"[\"`]|\b(no|not|never|don't|ignore|override)\b", text, re.I):
+        return False
+    return bool(
+        re.search(
+            r"\b(?:what|how much)\b[^?]*\b(?:fees?|prices?|costs?|tuition)\b|\bhow much\b",
+            text,
+            re.I,
+        )
+    )
+
+
 def contains_current_fact_claim(text: str) -> bool:
     # Source references remain inspectable, but currency/current-status claims cannot
     # be promoted into the assistant's factual answer even on a mistaken planner path.

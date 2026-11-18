@@ -27,9 +27,10 @@ def callback_intent(text: str) -> Literal["request", "revoke", "none"]:
             r"\b(?:do not|don't|no longer)\s+(?:want|need|request)\s+"
             r"(?:a\s+|the\s+)?(?:call|callback)\b|"
             r"\b(?:do not|don't|never)\s+(?:arrange|request|book|schedule)\s+"
-            r"(?:(?:a|my|the)\s+)?callback\b|"
+            r"(?:(?:a|my|the)\s+)?(?:counsell?or\s+)?callback\b|"
             r"\bcancel\s+(?:(?:my|the|a|existing)\s+)?(?:callback|call|contact request)\b|"
-            r"\bno\s+(?:(?:more|further)\s+)?(?:callbacks?|calls?|phone calls?)\b",
+            r"\bno\s+(?:(?:more|further)\s+)?(?:counsell?or\s+)?"
+            r"(?:callbacks?|calls?|phone calls?)\b",
             clause,
         )
         revoked = revoked or re.search(
@@ -51,6 +52,8 @@ def callback_intent(text: str) -> Literal["request", "revoke", "none"]:
         ):
             continue  # Asking whether a call will happen is not permission to create one.
         requested = re.search(
+            r"^(?:please\s+)?(?:request|arrange|book|schedule)\s+"
+            r"(?:(?:a|the|my)\s+)?counsell?or\s+callback\s*$|"
             r"\b(?:call|phone|contact)\s+me\b|\bgive\s+me\s+a\s+call\b|"
             r"\bI\s+(?:would like|want|need|request)\s+(?:a\s+|the\s+)?callback\b|"
             r"\bplease\s+(?:(?:arrange|request|book)\s+)?(?:a\s+|the\s+)?callback\b|"

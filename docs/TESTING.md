@@ -22,12 +22,13 @@ backend suite passed on 19 November 2026; the recorded checks below span
 | Check | Expected | Actual |
 |---|---|---|
 | Backend lint/format/strict types/contracts | Pass | Pass |
-| Backend test suite | All cases pass | 1022 passed in a clean run |
+| Backend test suite | All cases pass | 1053 passed in the final clean run |
 | Frontend API/validator/proxy checks | All checks pass | 26 passed |
 | React component interaction tests | All tests pass | 18 passed |
 | Browser integration | All checks pass; no JavaScript exceptions | 22 passed |
 | Frontend lint/types and production build | Pass | Pass |
 | Actual Gemini assessment scenarios | All ten behaviors pass | 10 passed |
+| Final expanded live regression | All twenty scenarios / twenty-four turns pass | 24/24 automatic checks; replies manually reviewed |
 
 The frontend was installed from its lockfile using `npm ci`. The installed backend
 environment was reused while importing this checkout's source. These are host
@@ -230,3 +231,52 @@ The overall median includes local state/receipt replies and is not an AI latency
 benchmark. Provider timing remains variable. Evaluation pacing was retained around
 provider-consuming turns; deliberate pacing is excluded from response duration.
 Raw replay logs and traces remain private, outside the public submission.
+
+## Final submission verification — 19 November 2026
+
+The final application passed **1053 backend tests** in a clean run, Ruff lint and
+format checks, strict mypy checks over 50 application files, and generated-contract
+comparison. Frontend lint, types, 26 API checks and 18 rendered-component tests
+passed. The unchanged frontend build also passed the 22-check browser harness.
+
+The expanded actual-Gemini regression ran **20 scenarios / 24 message turns**,
+with **24/24 automatic passes** and manual review of every reply. It checked
+prerequisites and a named introductory alternative, joint refund conditions,
+unknown policies, live prices/availability, budget-free searches and corrections,
+mixed policy/current-fee answers, fragmented contact collection, social closing,
+fitness isolation, and newly added/revised documents. Expected and actual values
+are reproducible with the authored cases and [evaluation runner](../evaluation/README.md).
+The prior baseline and interrupted attempts were retained privately; they were not
+relabelled as successful runs. Once used for fixes, these cases are regressions,
+not fresh held-out generalization evidence.
+
+The final live run's median API turn time was **4.98 seconds**, excluding deliberate
+pacing. Retrieval covered the expected document for all nine answerable policy
+queries at top-k and after the existing threshold. These are small-sample
+observations, not a universal accuracy, threshold-calibration or latency guarantee.
+No retrieval threshold was changed to obtain these results.
+
+A separate final headless-browser flow used the actual frontend, REST gateway,
+Gemini and automatic worker in an owned disposable database. Its eight chat turns
+searched courses, selected the second result, retrieved a cited refund policy,
+collected name and phone separately, saved a lead, requested a counselor callback
+and closed the conversation. The Leads screen then displayed the actual requested
+callback, generated counselor summary and stored local notification. Conversations
+showed the saved dialogue, and Knowledge base listed the business documents. No
+JavaScript exceptions were observed; owned services/database were cleaned up.
+An earlier probe exposed unsupported counselor-callback consent wording, now covered
+by a regression. A subsequent harness wait matched the outgoing Chat view during
+navigation; the final probe waited for the actual lead card before opening it.
+These earlier attempts were retained privately rather than counted as passes.
+
+Regression additions ensure an explicit named-course enquiry owns its collection
+goal, separate literal contact replies remain evidence-validated, a documented
+beginner alternative survives optional paraphrasing, and an explicitly requested
+fee is not lost when a matching successful course receipt already exists. Explicit
+counselor callback wording is recognized while quoted requests and revocations
+remain non-authorizing. No payment/enrolment or real notification integration was added.
+
+Existing locked dependencies were reused while importing this checkout's source.
+This is Windows host verification, not a fresh-OS installation qualification.
+Raw responses, customer/session identifiers and browser captures remain ignored
+local evidence; no application database export or private credentials are submitted.

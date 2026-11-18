@@ -66,6 +66,8 @@ See [test scenarios and expected/actual results](docs/TESTING.md).
 - [Add a business, tool or channel](docs/EXTENDING.md).
 - [Technical decisions](docs/DECISIONS.md).
 - [Limitations and incomplete work](docs/LIMITATIONS.md).
+- [Assessment requirements and deliverables](docs/ASSESSMENT_COVERAGE.md).
+- [Optional live evaluation](evaluation/README.md): frozen synthetic cases and labelled regressions.
 - [Portable setup](docs/SETUP.md).
 - [OpenAPI and domain schemas](docs/contracts).
 

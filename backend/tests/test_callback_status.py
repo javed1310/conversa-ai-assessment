@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import pytest
 
+from app.intent import callback_intent
 from app.tools import ToolRegistry
 from tests.test_agent import agent_env as agent_env
 from tests.test_agent import change
@@ -223,3 +224,29 @@ async def test_semantic_post_enquiry_questions_only_offer_callback(
     assert "Would you like me to request" in result.reply
     assert not result.actions
     assert (await env.storage.db.leads.find_one({"lead_id": lead}))["callback_request_id"] is None
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Please request a counselor callback.", "request"),
+        ("Please arrange a counsellor callback.", "request"),
+        ("Do not request a counselor callback.", "revoke"),
+        ("No counselor callbacks.", "revoke"),
+        ('Example: "Please request a counselor callback."', "none"),
+        ("What is a counselor callback?", "none"),
+    ],
+)
+def test_counselor_callback_preserves_explicit_consent_boundary(text, expected):
+    assert callback_intent(text) == expected
+
+
+async def test_explicit_counselor_callback_uses_owned_saved_lead(agent_env):
+    env = agent_env
+    lead_id = await saved_lead(env)
+    reply = await env.send("Please request a counselor callback.")
+    assert any(
+        a.result.tool == "requestCallback" and a.result.status == "success" for a in reply.actions
+    )
+    document = await env.storage.db.leads.find_one({"lead_id": lead_id})
+    assert document["callback_request_id"] is not None

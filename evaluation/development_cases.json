@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "split": "development",
+  "purpose": "Calibration examples only. Never include these in held-out scores.",
+  "cases": [
+    {"id": "dev-prerequisite", "business": "training-institute", "question": "Does Advanced Python require programming experience?", "document": "eligibility"},
+    {"id": "dev-refund", "business": "training-institute", "question": "What are both refund conditions?", "document": "refund"},
+    {"id": "dev-trial", "business": "fitness-studio", "question": "How does an introductory trial visit work?", "document": "fitness-policy"},
+    {"id": "dev-unknown", "business": "training-institute", "question": "Do you provide student accommodation?", "document": null}
+  ]
+}

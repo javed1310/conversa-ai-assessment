@@ -1,0 +1,9 @@
+{
+  "baselineCommit": "819ff91c27e2342fdbb452f837e242f94c9ccd20",
+  "heldoutSha256": "1b76af92a85e123c527da1abac26b50c2c993c0133e1acb5e265a88010fe656d",
+  "developmentSha256": "7f9fc251e36de975ec2afa7144e5b6efd1aa5eb545f27af06aa798cf63f69e64",
+  "runtimeFingerprint": "0d69e43a9da59b4e2695ddecc3f1ef8ecf7a40b34e7a63a7a359152853df8094",
+  "corpusFingerprint": "06b265eb3a0945c52ad6aac604cadb1ffe36390d01380d433d82f36fd065d8b4",
+  "digestMethod": "Canonical JSON for datasets; sorted relative paths and LF-normalized file bytes for runtime/corpus.",
+  "frozenBeforeLiveRun": true
+}

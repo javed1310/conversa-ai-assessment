@@ -24,6 +24,11 @@
 - Retrieval uses a bounded small corpus and linear cosine search (499-chunk cap).
   Worker/provider capacity is bounded for a local prototype. Uncertain interrupted
   writes can require review rather than automatic replay.
+- The training behavior module remains large and includes explicit dialogue rules.
+  Its paths have regression coverage, but it has not been fully decomposed into
+  smaller components. The small evaluation set does not comprehensively establish
+  retrieval-threshold robustness or language generalization. Cases used for fixes
+  are reported as regressions, not fresh held-out accuracy evidence.
 - Business configurations and registered handlers are trusted code. A new business
   needs its own documents/data and tool registration; it is not an executable
   customer-uploaded plugin. Document truth depends on the supplied business policies.

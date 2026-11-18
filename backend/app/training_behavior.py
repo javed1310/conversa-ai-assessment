@@ -24,7 +24,7 @@ from app.contracts import (
     Text,
     ToolFailure,
 )
-from app.customer_values import contact_line
+from app.customer_values import collected_contact_fields
 from app.dialogue import (
     affirmation,
     asks_after_enquiry_next_step,
@@ -43,6 +43,7 @@ from app.dialogue import (
 )
 from app.facts import (
     contains_current_fact_claim,
+    explicit_fee_question,
     policy_reply,
     requests_course_search,
     requests_current_facts,
@@ -61,7 +62,7 @@ from app.persistence_models import AgentTrace, Course, Turn
 from app.phones import PHONE_PROMPT
 from app.presentation import acknowledges_preference, course_options, course_reply
 from app.repositories import RecordNotFound, Repository
-from app.response_safety import selected_passages
+from app.response_safety import include_beginner_alternative, selected_passages
 from app.state import StateFailure, StateService, discussed_course, qualification
 from app.tools import (
     CallbackReceipt,
@@ -155,7 +156,12 @@ class TrainingBehavior(BusinessBehavior):
         "complete sentence or paragraph that answers the CURRENT question about "
         "the named entity, not whole retrieved documents. For 'Does Advanced "
         "Python require programming experience?' choose only its prerequisite "
-        "sentence, not Python Basics, learning paths or unrelated courses. Do not"
+        "sentence, not Python Basics, learning paths or unrelated courses. "
+        "When the customer explicitly has no programming experience and asks where "
+        "to start or whether an advanced course is suitable, also select the "
+        "retrieved passage naming an introductory course with no prerequisites. "
+        "Do not leave a documented alternative unnamed; do not infer prerequisites "
+        "from a course title or include unrelated learning paths. Do not"
         " duplicate answers across documents. Include necessary conditions and "
         "limitations: paragraphs with BOTH/AND, only-if, unless or subject-to "
         "conditions must be quoted in full. No document prose is rendered without"
@@ -416,7 +422,9 @@ class TrainingBehavior(BusinessBehavior):
             work.dialogue_course_id = dialogue.pending.course_id
         if not any(item.stage == "customer" for item in turn.state_checkpoints):
             contacts = (
-                contact_line(turn.input_text) if work.next_step == "collect_enquiry" else None
+                collected_contact_fields(turn.input_text)
+                if work.next_step == "collect_enquiry"
+                else {}
             )
             literal = (
                 literal_catalogue_proposal(turn.turn_id, turn.input_text)
@@ -428,12 +436,10 @@ class TrainingBehavior(BusinessBehavior):
                 count("literal_catalogue_state_hits")
             patch = (
                 EvidencedProposal(
-                    proposal=StateProposal(
-                        set_fields=CustomerChanges(name=contacts[0], phone=contacts[1])
-                    ),
+                    proposal=StateProposal(set_fields=CustomerChanges.model_validate(contacts)),
                     evidence={
                         key: CustomerEvidence(turn_id=turn.turn_id, excerpt=value)
-                        for key, value in zip(("name", "phone"), contacts, strict=True)
+                        for key, value in contacts.items()
                     },
                 )
                 if contacts
@@ -964,20 +970,32 @@ class TrainingBehavior(BusinessBehavior):
     ) -> ChatResult | None:
         text = dialogue.turn.input_text
         business = self.businesses.get(context.business_id)
-        if (
-            not starts_discussed_enquiry(text)
-            or business is None
-            or "createLead" not in business.enabled_tools
-        ):
+        if business is None or "createLead" not in business.enabled_tools:
             return None
-        course_id = work.discussed_course_id
+        catalog = await service.repo.courses()
+        named = [
+            c.course_id
+            for c in catalog
+            if any(
+                re.fullmatch(
+                    r"\s*(?:please\s+)?(?:save|record|create)\s+(?:an?|my)\s+"
+                    r"(?:enquiry|inquiry)\s+(?:about|for)\s+" + re.escape(value) + r"\s*[.!]?\s*",
+                    text,
+                    re.I,
+                )
+                for value in (c.course_id,)
+            )
+        ]
+        literal_request = len(named) == 1
+        if not literal_request and not starts_discussed_enquiry(text):
+            return None
+        course_id = named[0] if literal_request else work.discussed_course_id
         if course_id is None:
             return ChatResult(
                 message_id=dialogue.turn.message_id,
                 session_id=context.session_id,
                 reply="Which course would you like to enquire about?",
             )
-        catalog = await service.repo.courses()
         if any(
             c.course_id != course_id
             and any(
@@ -987,7 +1005,7 @@ class TrainingBehavior(BusinessBehavior):
             for c in catalog
         ):
             return None
-        await service.select_discussed(context, text, course_id)
+        await service.select_discussed(context, text, course_id, reviewed_choice=literal_request)
         state = await service.view(context)
         missing = qualification(state).missing
         work.next_step = "collect_enquiry"
@@ -1211,6 +1229,9 @@ class TrainingBehavior(BusinessBehavior):
                     )
         available = {item.key: item for item in work.evidence}
         passages = selected_passages(selection, work)
+        if include_beginner_alternative(passages, work, dialogue.turn.input_text):
+            # An optional stylistic paraphrase must not drop the documented alternative.
+            work.response_locked = True
         pieces = []
         sources = []
         last_display = None
@@ -1246,7 +1267,7 @@ class TrainingBehavior(BusinessBehavior):
             and state.provenance["schedule"].turn_id == current_turn.turn_id
         )
 
-        def render_course(course: Course) -> str:
+        def render_course(course: Course, *, fee_only: bool = False) -> str:
             mentioned_courses.add(course.course_id)
             work.discussed_course_id = course.course_id if len(mentioned_courses) == 1 else None
             business = self.businesses.get(context.business_id)
@@ -1264,7 +1285,7 @@ class TrainingBehavior(BusinessBehavior):
                 current_turn.input_text,
                 state,
                 acknowledge=acknowledge_preference,
-                fields=selection.course_fields,
+                fields=("fee",) if fee_only else selection.course_fields,
                 confirmation=selection.confirmation,
             )
 
@@ -1367,11 +1388,20 @@ class TrainingBehavior(BusinessBehavior):
                         # Ordinal references must describe the list actually delivered.
                         # Keep verified search rows stable through conversational composition.
                         work.response_locked = True
-                    elif result.tool == "getCourseDetails" and course_relevant:
-                        pieces.append(
-                            render_course(CourseDetailsResult.model_validate(result.data).course)
+                    elif result.tool == "getCourseDetails":
+                        course = CourseDetailsResult.model_validate(result.data).course
+                        checked_fee = explicit_fee_question(current_turn.input_text) and any(
+                            re.search(
+                                r"\b" + re.escape(value) + r"\b", current_turn.input_text, re.I
+                            )
+                            for value in (course.course_id, course.name)
                         )
-                        work.response_evidence[key] = item.text
+                        if course_relevant or checked_fee:
+                            forced_fee = checked_fee and not course_relevant
+                            pieces.append(render_course(course, fee_only=forced_fee))
+                            if forced_fee:
+                                work.response_locked = True
+                            work.response_evidence[key] = item.text
                     elif result.tool in WRITE_TOOLS:
                         # Render actual write receipts below regardless of model selection.
                         continue

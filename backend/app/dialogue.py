@@ -26,7 +26,12 @@ def social_closing(text: str) -> bool:
         r"(?:ok(?:ay)?|thanks|thank you|great|perfect|got it|understood|alright|fine|sounds good)"
     )
     return bool(
-        re.fullmatch(r"\s*" + word + r"(?:[\s,!.]+" + word + r"){0,3}\s*[.!]*\s*", text, re.I)
+        re.fullmatch(
+            r"\s*" + word + r"(?:[\s,!.]+" + word + r"){0,3}"
+            r"(?:\s*,?\s*that's all)?\s*[.!]*\s*",
+            text,
+            re.I,
+        )
     )
 
 

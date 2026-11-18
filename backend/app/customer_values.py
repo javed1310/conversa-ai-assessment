@@ -71,3 +71,30 @@ def contact_line(text: str) -> tuple[str, str] | None:
         return None
     # Keep literal formatting as evidence; CustomerFields supplies canonical storage.
     return match[1].strip(), match[2]
+
+
+def collected_contact_fields(text: str) -> dict[str, str]:
+    """Literal contact replies only; caller must have an owned collection goal."""
+    combined = contact_line(text)
+    if combined is not None:
+        return dict(zip(("name", "phone"), combined, strict=True))
+    name = re.fullmatch(r"\s*my name is\s+([^\W\d_]+(?:[ '-]+[^\W\d_]+){0,5})\s*\.?\s*", text, re.I)
+    if name and not re.search(
+        r"\b(no|not|never|don't|and|but|ignore|override|instructions|save|call|example)\b",
+        name[1],
+        re.I,
+    ):
+        return {"name": name[1]}
+    phone = re.fullmatch(
+        r"\s*(?:my\s+(?:phone(?: number)?|mobile(?: number)?|number)\s+is\s+)?"
+        r"(\+?[0-9(][0-9 ().-]{1,61}[0-9)])\s*\.?\s*",
+        text,
+        re.I,
+    )
+    if phone:
+        try:
+            normalize_phone(phone[1])
+        except ValueError:
+            return {}
+        return {"phone": phone[1]}
+    return {}
