@@ -258,7 +258,9 @@ def build_tool_registry() -> ToolRegistry:
         (
             ToolDefinition(
                 "searchCourses",
-                "Search courses by category, inclusive budget and optional schedule.",
+                "Browse current course records by category, optional maximum budget and schedule. "
+                "Omit budget when none was supplied. Not for eligibility, prerequisites, "
+                "course content or policies: use readKnowledge for those questions.",
                 SearchCoursesArguments,
                 CourseSearchResult,
                 search_courses,

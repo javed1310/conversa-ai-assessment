@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import (
+    AliasChoices,
     AwareDatetime,
     BaseModel,
     ConfigDict,
@@ -70,7 +71,9 @@ class ExecutionContext(Contract):
 
 class SearchCoursesArguments(Contract):
     category: Literal["data-science", "python"]
-    budget: Budget
+    budget: Budget | None = Field(
+        default=None, validation_alias=AliasChoices("budget", "maxBudget")
+    )
     schedule: Schedule | None = None
 
 

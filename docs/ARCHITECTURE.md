@@ -87,3 +87,21 @@ actual lead receipts. Saved-enquiry guidance and callback status are separate:
 a status question does not create consent for a new callback. Daily quota errors
 are reported clearly without futile immediate retries. Timings and counters omit
 customer payloads and provider credentials.
+
+## Contextual reads and policy boundaries
+
+Course search accepts an optional budget (also accepting `maxBudget` on input).
+With no supplied budget it browses the actual category without a price filter;
+when preferences exist, the application still rejects invented or relaxed filters.
+Accepted current-turn budget provenance makes subsequent validated search results
+answerable even when the message contains only the corrected amount.
+
+A course-detail reply can use the already resolved discussion/selection focus and
+the semantic field classifier, instead of requiring a particular confirmation
+phrase. An unrelated lookup does not authorize an unrelated answer. Eligibility
+and beginner questions are explicitly routed toward knowledge in tool guidance.
+
+Document presentation distinguishes an explicit unknown-price disclaimer from a
+price assertion. A paragraph stating that fees are not established can retain its
+independent access rules; price assertions (including zero-price claims) remain
+excluded. Source span verification and coupled policy conditions still apply.

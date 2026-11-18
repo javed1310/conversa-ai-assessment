@@ -37,6 +37,21 @@ def test_headingless_documents_preserve_conditions():
     assert policy_reply(text, "refund?") == text
 
 
+def test_policy_limits_do_not_erase_unrelated_documented_access_rules():
+    text = (
+        "Practice library access: Learners may visit Saturdays from 10 AM to noon. "
+        "Bring your learner ID. This policy establishes no fees or course seat availability."
+    )
+    reply = policy_reply(text, "When can I access the practice library and what should I bring?")
+    assert "Saturdays" in reply and "learner ID" in reply
+
+
+def test_price_assertions_remain_blocked_without_currency_symbols():
+    assert not policy_reply("Course tuition is twenty thousand. Courses are free.", "Course fees?")
+    assert not policy_reply("Prices start at twenty thousand.", "Course fees?")
+    assert not policy_reply("No fees apply.", "Course fees?")
+
+
 def test_prerequisite_answer_is_conversational_without_agreeing_to_wrong_premise():
     reply = policy_reply(
         "Advanced Python (PY202) requires basic programming knowledge.",

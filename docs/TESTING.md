@@ -21,7 +21,7 @@ Windows. Expected and observed results:
 | Check | Expected | Actual |
 |---|---|---|
 | Backend lint/format/strict types/contracts | Pass | Pass |
-| Backend test suite | All tests pass | 989 passed |
+| Backend test suite | All cases pass | Latest full run: 1009 passed, 1 temporary-database setup error; affected case passed on isolated rerun (1010 cases covered) |
 | Frontend API/validator/proxy checks | All checks pass | 26 passed |
 | React component interaction tests | All tests pass | 18 passed |
 | Browser integration | All checks pass; no JavaScript exceptions | 22 passed |
@@ -130,3 +130,42 @@ launcher discovery, explicit overrides and actionable missing-runtime failures.
 Together with callback, enquiry, enrolment guidance and conversational composition
 regressions, 88 tests passed for this setup-only change. The application runtime
 source was not modified. The full earlier suite remains a separate observation.
+
+## Live dialogue regression evaluation
+
+Run the real-provider evaluation separately from the controlled regression suite:
+
+```powershell
+python scripts/uv.py run python ../scripts/evaluate_live_dialogue.py --output live-dialogue-fixed.json
+```
+
+It requires a private Gemini key and quota, embeds fictional repository fixtures
+into an owned disposable database, and sends 30 turns by default. It includes two
+repeated nine-turn enquiry/callback flows, typos, fragmented contact details,
+policy paraphrases, budget-free browsing/corrections, fitness isolation and a newly
+ingested document. It does not read existing application customer records and
+removes its owned database. Reports stay in ignored `.cache` output. Automation is
+disabled in this conversational evaluation; its separate tests remain required.
+
+The post-fix live run passed 30/30 reviewed turns. The earlier reviewed sample
+passed 23/30. Median turn time changed from 5.30 to 2.13 seconds, with maximum
+24.33 to 9.67 seconds. Deliberate pacing is excluded from turn time. These are small
+sequential samples with provider variation, not a general accuracy score or latency
+SLA. The pre-fix evaluator's two field-name errors were independently corrected
+using persisted test-session state; successful tool calls with unusable visible
+answers were marked failures rather than accepted on receipts alone.
+
+New controlled regressions cover absent/invented budgets, the `maxBudget` alias,
+contextual-budget search evidence, semantic schedule reassurance, document limits
+and price-claim exclusion, and end-to-end new-document answering/citation.
+
+The latest full submission suite reported 1009 passes and one setup error while
+opening a disposable MongoDB test database (`DatabaseStartupError`), before the
+affected test's assertions ran. That case passed on an isolated rerun with the
+16 new/related regression checks (17 passed). An earlier overlapping workspace
+run had the same startup-error class on a different case; its complete 40-test
+module passed separately. These initial infrastructure errors are retained in the
+local evidence and are not counted as successful first-run assertions. No retry
+was added to production database code or test assertions to hide the errors.
+The 22 browser checks, 26 frontend API checks, 18 component tests, frontend build,
+lint, strict types and contract consistency checks passed separately.

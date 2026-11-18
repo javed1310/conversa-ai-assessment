@@ -93,8 +93,9 @@ class Repository:
         key: dict[str, Any] = {
             "business_id": self.business_id,
             "category": arguments.category,
-            "fee": {"$lte": arguments.budget},
         }
+        if arguments.budget is not None:
+            key["fee"] = {"$lte": arguments.budget}
         if arguments.schedule is not None:
             key["schedule"] = arguments.schedule
         cursor = self.db.courses.find(key).sort([("fee", 1), ("course_id", 1)])

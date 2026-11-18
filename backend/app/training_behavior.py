@@ -83,8 +83,12 @@ class TrainingBehavior(BusinessBehavior):
         "identity.\nChoose operations dynamically: greetings need no tools; "
         "policies/prerequisites/refunds require\nreadKnowledge; current "
         "fees/schedules/seats require business tools. Mixed questions need both.\n"
-        "Use validated state for budget/schedule. Never invent a budget to "
-        "search: ask if missing. Category\nis data-science or python; use explicit"
+        "Questions about whether a beginner can start a course, coding experience or "
+        "admission rules need readKnowledge, not catalogue search. Catalogue search "
+        "browses or filters current course records; it does not establish prerequisites.\n"
+        "Use validated state for budget/schedule. Never invent a budget: omit it "
+        "when missing to browse courses without a price filter. "
+        "Category\nis data-science or python; use explicit"
         " customer interest/context, ask if ambiguous. Do not silently\nrelax "
         "filters. To resolve 'the second one', call resolveCourseReference with "
         "an actual excerpt from\nthe current customer message, then "
@@ -711,8 +715,13 @@ class TrainingBehavior(BusinessBehavior):
         work: TurnWork,
         dialogue: TurnDialogue,
     ) -> ChatResult | None:
+        state = await service.view(context)
+        budget_proof = state.provenance.get("budget")
+        contextual_search = (
+            budget_proof is not None and budget_proof.turn_id == dialogue.turn.turn_id
+        )
         if (
-            not requests_course_search(dialogue.turn.input_text)
+            not (requests_course_search(dialogue.turn.input_text) or contextual_search)
             or re.search(
                 r"\b(and|also|but|then|compare|callback|call|enrol|enroll|enquiry|inquiry|"
                 r"save|create|register|phone|my name|another|different)\b",
@@ -741,7 +750,7 @@ class TrainingBehavior(BusinessBehavior):
         return await self._assemble(
             context,
             service,
-            await service.view(context),
+            state,
             ReplySelection(
                 kind="evidence", course_use="overview", evidence_keys=keys, clarification="none"
             ),
@@ -998,7 +1007,7 @@ class TrainingBehavior(BusinessBehavior):
             is not None
         )
         checked_course_id = work.resolved_reference or (
-            (work.discussed_course_id or state.fields.course_id) if schedule_confirmation else None
+            work.discussed_course_id or state.fields.course_id
         )
         if checked_course_id is not None and (
             schedule_confirmation
@@ -1123,8 +1132,8 @@ class TrainingBehavior(BusinessBehavior):
         course_relevant = selection.course_use == "overview" or (
             selection.course_use == "fields" and bool(selection.course_fields)
         )
-        requested_search = state.fields.budget is not None and requests_course_search(
-            current_turn.input_text
+        requested_search = requests_course_search(current_turn.input_text) or (
+            budget_proof is not None and budget_proof.turn_id == current_turn.turn_id
         )
         searched = [
             item.key
@@ -1388,9 +1397,8 @@ class TrainingBehavior(BusinessBehavior):
             return {"courseID": course.course_id, "name": course.name}
         if call.name == "searchCourses":
             state = await service.view(context)
-            if state.fields.budget is None:
-                return {"status": "failure", "code": "BUDGET_REQUIRED"}
-            if call.arguments.get("budget") != state.fields.budget or (
+            proposed_budget = call.arguments.get("budget", call.arguments.get("maxBudget"))
+            if proposed_budget != state.fields.budget or (
                 call.arguments.get("schedule") != state.fields.schedule
             ):
                 return {"status": "failure", "code": "USE_VALIDATED_PREFERENCES"}

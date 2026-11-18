@@ -63,3 +63,12 @@ Use a fresh session to demonstrate `Please call me` without contact: it asks for
 
 
 Recorded expected/actual results and reproduction commands: [TESTING](TESTING.md).
+
+## Course browsing and optional budget
+
+A web or mock customer may ask `What Python courses do you offer?` without a
+budget. `searchCourses` accepts `{"category":"python"}` and reads all matching
+category records. When a maximum is known, its `budget` value must match validated
+session preferences. The assessment spelling `maxBudget` is also accepted on input.
+Current availability is returned as recorded, including full courses; an enquiry
+never reserves a seat. A later budget correction filters the next actual search.

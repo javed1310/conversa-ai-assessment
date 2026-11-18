@@ -95,12 +95,36 @@ def policy_excerpt(text: str) -> str:
     The full immutable excerpt remains in Sources. Suppressed paragraphs are never
     replaced with model-generated price/status claims.
     """
+
+    def asserts_price(paragraph: str) -> bool:
+        for sentence in re.split(r"(?<=[.!?])\s+", paragraph):
+            for term in re.finditer(
+                r"\b(fees?|prices?|costs?|pricing|tuition|rupees?|free)\b", sentence, re.I
+            ):
+                # A disclaimer must qualify this price term, not an unrelated clause.
+                prefix = sentence[: term.start()]
+                suffix = sentence[term.end() :]
+                unknown = re.search(
+                    r"\b(?:establishes no|(?:does not|do not|cannot|can't)\s+"
+                    r"(?:establish|specify|verify|confirm))\s+(?:current\s+)?$",
+                    prefix,
+                    re.I,
+                ) or re.match(
+                    r"\s+(?:(?:is|are)\s+)?(?:not|never)\s+"
+                    r"(?:specified|established|documented|provided|verified)\b",
+                    suffix,
+                    re.I,
+                )
+                if not unknown:
+                    return True
+        return False
+
     return "\n\n".join(
         paragraph
         for paragraph in re.split(r"\n\s*\n", text)
         if not contains_current_fact_claim(paragraph)
+        and not asserts_price(paragraph)
         and not re.search(
-            r"\b(fees?|prices?|costs?|pricing|tuition|rupees?|free)\b|"
             r"\b(?:courses?|classes|memberships?|batches)\b[^.\n]*"
             r"\b(?:available|full|weekdays?|weekends?)\b",
             paragraph,
