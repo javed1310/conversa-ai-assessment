@@ -149,13 +149,16 @@ class TestActionAgent:
     async def test_repeated_intent_new_message_reuses_actual_lead_and_callback(self, agent_env):
         env = agent_env
         first = await intake(env)
+        before = await env.storage.db.leads.find_one({})
+        requests = len(env.model.requests)
         repeated = await env.send(
             "Please call me again about the same enquiry",
             steps=[[("createLead", details())], [("requestCallback", actual_lead_id)]],
         )
-        assert repeated.actions[0].result.data["leadId"] == first.actions[0].result.data["leadId"]
-        assert (
-            repeated.actions[1].result.data["requestId"]
-            == first.actions[1].result.data["requestId"]
-        )
+        assert not repeated.actions and len(env.model.requests) == requests
+        assert "recorded" in repeated.reply
+        after = await env.storage.db.leads.find_one({})
+        assert after == before
+        assert after["lead_id"] == first.actions[0].result.data["leadId"]
+        assert after["callback_request_id"] == first.actions[1].result.data["requestId"]
         assert await env.storage.db.leads.count_documents({}) == 1

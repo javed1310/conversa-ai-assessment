@@ -1086,6 +1086,15 @@ class TrainingBehavior(BusinessBehavior):
         if business is None or "requestCallback" not in business.enabled_tools:
             return None
         lead = None
+        if (
+            callback_request(text)
+            and post_enquiry_question_candidate(text)
+            and not re.search(r"\b(when|whether|already|expect)\b", text, re.I)
+        ):
+            lead = await LeadActions(service.repo).existing(context)
+            if lead is None:
+                return None  # Normal qualification collects missing details first.
+            accepted = True
         if not (status or accepted or declined):
             if not post_enquiry_question_candidate(text) or (
                 callback_request(text)

@@ -16,10 +16,17 @@ function Send-Inquiry([string]$text) {
 }
 Send-Inquiry 'I want data science courses with a maximum budget of 30000 INR.'
 Send-Inquiry 'I want the second one. What are its fee, schedule and availability?'
-Send-Inquiry 'I prefer weekends. My name is Rahul. My phone is 9876543210. Please save my enquiry and call me.'
+Send-Inquiry 'I prefer weekends. My name is Rahul. My phone is 9876543210. Please save my enquiry.'
+Send-Inquiry 'I want to request a call back.'
 ```
 
 The seeded sorted results are DS101/DS202; second refers to actual displayed DS202, fee INR 28000/weekend/available. Inspect `actions` for actual lead/callback receipts and their returned IDs. No call, payment or enrolment occurs. The automated counselor summary is asynchronous; inspect the lead until completed/failed, rather than inventing immediate completion.
+
+`call back`, `call-back` and `callback` are normalized by the shared consent policy.
+A direct callback request after an enquiry uses that session's actual saved lead.
+Repeating a completed request acknowledges its existing callback without creating
+another record. Questions about whether a call will happen and quoted or negated
+requests do not authorize a callback.
 
 ## Policy, saved state and inspection
 

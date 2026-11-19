@@ -11,6 +11,8 @@ def callback_intent(text: str) -> Literal["request", "revoke", "none"]:
     result: Literal["request", "revoke", "none"] = "none"
     for clause in re.split(r"[.!?;,\n]+|\b(?:and|but|however|instead)\b", normalized, flags=re.I):
         clause = clause.strip().casefold()
+        callback_command = re.match(r"^(?:please\s+)?call\s+(?:me\s+)?back\b", clause)
+        clause = re.sub(r"\bcall[\s-]+back(s?)\b", r"callback\1", clause)
         clause = re.sub(r"\bi'd\b", "i would", clause)
         if re.search(r"\b(phrase|example|meaning|said|says|wrote|quoted|quote)\b", clause):
             continue
@@ -23,10 +25,12 @@ def callback_intent(text: str) -> Literal["request", "revoke", "none"]:
         clause = re.sub(r"\b(?:do not|don't)\s+forget\s+to\s+", "", clause)
         # Negation must target calling/callbacks, not unrelated experience or phone features.
         revoked = re.search(
-            r"\b(?:do not|don't|never|stop)\s+(?:ever\s+|please\s+)?(?:call|phone|contact)\b|"
+            r"\b(?:do not|don't|never|stop)\s+(?:ever\s+|please\s+)?"
+            r"(?:call|callback|phone|contact)\b|"
             r"\b(?:do not|don't|no longer)\s+(?:want|need|request)\s+"
             r"(?:a\s+|the\s+)?(?:call|callback)\b|"
-            r"\b(?:do not|don't|never)\s+(?:arrange|request|book|schedule)\s+"
+            r"\b(?:do not|don't|never|no longer)\s+"
+            r"(?:(?:want|wish|need)\s+to\s+)?(?:arrange|request|book|schedule)\s+"
             r"(?:(?:a|my|the)\s+)?(?:counsell?or\s+)?callback\b|"
             r"\bcancel\s+(?:(?:my|the|a|existing)\s+)?(?:callback|call|contact request)\b|"
             r"\bno\s+(?:(?:more|further)\s+)?(?:counsell?or\s+)?"
@@ -44,25 +48,35 @@ def callback_intent(text: str) -> Literal["request", "revoke", "none"]:
         if revoked:
             result = "revoke"
             continue
-        if re.match(r"^(what|how|why|explain|describe)\b", clause):
+        if re.match(r"^(what|how|why|when|whether|explain|describe)\b", clause):
             continue
         if re.search(
-            r"\bwill\s+(?:someone|somebody|you|a counselor|a counsellor)\s+call\s+me\b",
+            r"\bwill\s+(?:someone|somebody|you|a counselor|a counsellor)\s+"
+            r"(?:call|phone|contact)\s+me\b",
             clause,
         ):
             continue  # Asking whether a call will happen is not permission to create one.
-        requested = re.search(
-            r"^(?:please\s+)?(?:request|arrange|book|schedule)\s+"
-            r"(?:(?:a|the|my)\s+)?counsell?or\s+callback\s*$|"
-            r"\b(?:call|phone|contact)\s+me\b|\bgive\s+me\s+a\s+call\b|"
-            r"\bI\s+(?:would like|want|need|request)\s+(?:a\s+|the\s+)?callback\b|"
-            r"\bplease\s+(?:(?:arrange|request|book)\s+)?(?:a\s+|the\s+)?callback\b|"
-            r"\b(?:can|could|would)\s+you\s+(?:please\s+)?(?:arrange|request)\s+(?:a\s+)?callback\b|"
-            r"^(?:please\s+)?(?:request|arrange|book|schedule|want|need)\s+"
-            r"(?:(?:a|the|my)\s+)?callback\b|"
-            r"^(?:please\s+)?call\s+(?:me\s+)?back\b",
-            clause,
-            re.I,
+        requested = (
+            callback_command
+            or re.fullmatch(
+                r"(?:please\s+)?i\s+(?:want|need|would like)\s+to\s+"
+                r"(?:request|arrange|book|schedule)\s+(?:(?:a|the|my)\s+)?"
+                r"(?:counsell?or\s+)?callback(?:\s+please)?",
+                clause,
+            )
+            or re.search(
+                r"^(?:please\s+)?(?:request|arrange|book|schedule)\s+"
+                r"(?:(?:a|the|my)\s+)?counsell?or\s+callback\s*$|"
+                r"\b(?:call|phone|contact)\s+me\b|\bgive\s+me\s+a\s+call\b|"
+                r"\bI\s+(?:would like|want|need|request)\s+(?:a\s+|the\s+)?callback\b|"
+                r"\bplease\s+(?:(?:arrange|request|book)\s+)?(?:a\s+|the\s+)?callback\b|"
+                r"\b(?:can|could|would)\s+you\s+(?:please\s+)?(?:arrange|request)\s+(?:a\s+)?callback\b|"
+                r"^(?:please\s+)?(?:request|arrange|book|schedule|want|need)\s+"
+                r"(?:(?:a|the|my)\s+)?callback\b|"
+                r"^(?:please\s+)?call\s+(?:me\s+)?back\b",
+                clause,
+                re.I,
+            )
         )
         if requested:
             result = "request"

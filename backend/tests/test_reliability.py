@@ -123,8 +123,10 @@ class TestIntegratedReliability:
             "Please call me again about the same enquiry",
             steps=[[("createLead", details())], [("requestCallback", actual_lead_id)]],
         )
-        assert repeated.actions[0].result.data["leadId"] == saved["lead_id"]
-        assert repeated.actions[1].result.data["requestId"] == saved["callback_request_id"]
+        assert not repeated.actions and len(env.model.requests) == calls
+        assert "recorded" in repeated.reply
+        assert completed.payload.actions[0].result.data["leadId"] == saved["lead_id"]
+        assert completed.payload.actions[1].result.data["requestId"] == saved["callback_request_id"]
         await worker.tick()
         after = await env.storage.db.leads.find_one({})
         assert after == saved

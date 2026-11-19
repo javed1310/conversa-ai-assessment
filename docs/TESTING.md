@@ -22,11 +22,12 @@ backend suite passed on 19 November 2026; the recorded checks below span
 | Check | Expected | Actual |
 |---|---|---|
 | Backend lint/format/strict types/contracts | Pass | Pass |
-| Backend test suite | All cases pass | 1070 passed in the enquiry-handoff fix run |
+| Backend test suite | All cases pass | 1099 passed in the callback-wording release run |
 | Frontend API/validator/proxy checks | All checks pass | 26 passed |
 | React component interaction tests | All tests pass | 18 passed |
 | Browser integration | All checks pass; no JavaScript exceptions | 22 passed |
-| Frontend lint/types and production build | Pass | Pass |
+| Frontend lint | Pass | Previously passed on unchanged source; latest rerun blocked by Windows Application Control |
+| Frontend types and production build | Pass | Passed again in the callback-wording release run |
 | Actual Gemini assessment scenarios | All ten behaviors pass | 10 passed again in the enquiry-handoff fix retest |
 | Published baseline expanded live regression (historical) | All twenty scenarios / twenty-four turns pass | 24/24 automatic checks; replies manually reviewed |
 | Enquiry-handoff fix live replay | Reported conversation flows pass | 30/30 existing runner turns and 25/25 additional replay turns; replies and records reviewed |
@@ -319,3 +320,45 @@ clear enquiry/contact handoff; it does not remove provider quota or latency from
 RAG, broader interpretation or summaries. These are regression observations using
 cases inspected during fixes, not fresh held-out accuracy evidence. Unfinished
 architecture improvements were excluded from this candidate.
+
+## Callback wording release verification — 19 November 2026
+
+A manually reported request, "i want to request a call back", reached the callback
+tool but was rejected by the shared authorization policy as
+`CALLBACK_INTENT_REQUIRED`. The policy now normalizes call back/call-back/callback
+and accepts explicit "I want to request..." wording. An owned saved lead can be
+used directly without model classification. Mixed customer corrections remain on
+the validated state path; callback status questions, quotations and revocations
+remain non-authorizing. Existing short commands are preserved.
+
+The final complete backend run passed **1,099 tests**, including 29 new callback
+wording/persistence cases. Lint, formatting, strict types and generated contract
+checks passed. Earlier checks exposed two historical assertions requiring redundant
+lead/callback tool calls for an already completed request. They now verify the
+stronger outcome: no repeated write, unchanged stored effect IDs, and unchanged
+summary/notification data. A mixed phone-correction case also verifies that the
+direct route cannot discard that supplied customer detail.
+
+Fresh frontend verification passed TypeScript, **26 API/validator/proxy checks**,
+**18 component tests**, the production build and **22 browser checks**. The latest
+Biome lint invocation was blocked by this Windows host's Application Control
+policy, including a direct version invocation. The combined verification command
+stopped there; the remaining checks were run separately. No OS policy or linter
+rule was bypassed. Frontend source and dependencies are unchanged from the earlier
+successful lint run; a fresh lint pass is not claimed for this release check.
+
+A fresh seven-turn actual-Gemini web-gateway replay searched the catalogue,
+selected DS101, corrected a weekend assumption, collected an enquiry, saved a lead,
+and requested a callback using the reported wording. The callback ID was visible
+in the Leads API. An exact duplicate payload reused its saved reply, and a new
+message repeating the request retained the same callback and one lead. The owned
+fictional test database was removed. Summary automation was disabled in this
+targeted live probe and remains covered by the full integration suite and earlier
+live runs. Earlier 55-turn and ten-scenario live observations above are retained
+as historical evidence; they were not relabelled as this callback-specific replay.
+
+Reproduce the consent and integration regressions from the repository root:
+
+```powershell
+python scripts/uv.py run python -m pytest tests/test_callback_request_wording.py tests/test_callback_status.py tests/test_action_agent.py tests/test_reliability.py -q
+```

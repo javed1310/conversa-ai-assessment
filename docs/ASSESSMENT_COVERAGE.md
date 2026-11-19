@@ -11,7 +11,7 @@ boundaries. Controlled tests and live model observations are separate evidence.
 | 3. Knowledge and RAG | Four institute documents under `businesses/training-institute/knowledge`; ingestion, chunking, Gemini embeddings, scoped cosine retrieval and sources; `test_knowledge.py`, `test_passage_selection.py` |
 | 4. Agent and tools | Dynamic operation selection, validated arguments/results, chained lead/callback receipts; `test_agent.py`, `test_action_agent.py` |
 | 5. Example conversation | Ordered search references, current course details, missing-contact collection, real lead ID used for callback; [API flow](API_EXAMPLES.md), `test_agent.py`, `test_action_agent.py` |
-| 6. Persistent state | Owned MongoDB sessions, provenance, corrections, qualification and duplicate protection; `test_state.py`, `test_actions.py`, `test_discussed_enquiry.py` |
+| 6. Persistent state | Owned MongoDB sessions, provenance, corrections, qualification and duplicate protection; `test_state.py`, `test_actions.py`, `test_discussed_enquiry.py`, `test_callback_request_wording.py` |
 | 7. Channel gateway | Web and simulated external adapters share normalized messages and the engine; `test_gateway.py`, `test_mock_channel.py`; [extension guide](EXTENDING.md) |
 | 8. Automatic processing | Successful lead event, validated summary, persistent local notification, retries and duplicate protection; `test_automation.py` |
 | 9. Business configuration | Institute and fitness JSON configurations, separate documents and enabled tools enforced in code; `test_businesses.py`, `test_behavior_boundaries.py` |

@@ -7,8 +7,9 @@
   model/project quota. Output can fail validation; repairs/retries are bounded.
   Evidence-linked wording is checked and has factual/receipt fallbacks, but model
   judgments remain probabilistic and may add latency.
-- Clear, whole-message enquiry requests and separate contact replies use the
-  owned collection workflow without model classification. Broader interpretation,
+- Clear, whole-message enquiry requests, separate contact replies and explicit
+  callback requests for an owned saved lead use the validated workflow without
+  model classification. Broader interpretation,
   document answers and summary generation still depend on Gemini. Model-backed
   turns can take tens of seconds during provider degradation; the handoff fix is
   not a guarantee of low latency or unlimited quota for every message.
