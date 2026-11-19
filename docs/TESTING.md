@@ -362,3 +362,22 @@ Reproduce the consent and integration regressions from the repository root:
 ```powershell
 python scripts/uv.py run python -m pytest tests/test_callback_request_wording.py tests/test_callback_status.py tests/test_action_agent.py tests/test_reliability.py -q
 ```
+
+## Intent spelling regression verification
+
+Reported typos `first ine` and `i want to enquie about it` now use bounded shared
+spelling hints for course selection and enquiry intent. Original input is retained
+in history and provenance. Customer facts, IDs, prices and callback consent are not
+fuzzily rewritten. Ambiguous or mixed messages retain the normal interpretation
+path. This supports a defined one-edit tolerance, not arbitrary misspellings.
+
+The affected agent, state, reference, enquiry and callback suites passed **186
+tests**. Lint, strict types and contract export checks passed. The full 1,099-test
+run above is the prior callback release's result; a fresh full-suite result is not
+claimed for this focused spelling fix. Reproduce the new cases using
+`python scripts/uv.py run python -m pytest tests/test_intent_spelling.py -q`.
+
+A fresh actual-Gemini seven-turn replay using `first ine` and `enquie` passed,
+including current course details, enquiry/contact collection, callback creation,
+Leads API status, identical-payload replay and repeat-request duplicate protection.
+The replay used fictional data and removed its owned database.

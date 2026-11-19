@@ -3,6 +3,8 @@
 import re
 from typing import Literal
 
+from app.intent_spelling import enquiry_spelling, reference_spelling
+
 NextStep = Literal["none", "offer_enquiry", "collect_enquiry", "offer_callback", "clarify_course"]
 
 
@@ -101,6 +103,7 @@ def asks_enrollment_next_step(text: str) -> bool:
 
 def starts_discussed_enquiry(text: str) -> bool:
     """A narrow request to proceed with this course, never payment/enrolment execution."""
+    text = enquiry_spelling(text)
     if re.search(
         r"[\"`]|\b(no|not|don't|never|refund|policy|price|fee|another|different|"
         r"my name|my phone|and|also|but|eligibility|prerequisites)\b|\d{6,}",
@@ -231,6 +234,7 @@ def decline(text: str) -> bool:
 
 
 def bare_course_selection(text: str) -> bool:
+    text = reference_spelling(text)
     return bool(
         re.fullmatch(
             r"\s*(?:the\s+)?(?:first|second|third|fourth|1st|2nd|3rd|4th)"

@@ -374,7 +374,12 @@ class StateService:
             "fourth": 4,
             "4th": 4,
         }
-        words = re.findall(r"\b(first|1st|second|2nd|third|3rd|fourth|4th)\b", excerpt.casefold())
+        from app.intent_spelling import reference_spelling
+
+        words = re.findall(
+            r"\b(first|1st|second|2nd|third|3rd|fourth|4th)\b",
+            reference_spelling(excerpt).casefold(),
+        )
         direct = [
             course.course_id
             for course in await self.repo.courses()
