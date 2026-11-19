@@ -108,6 +108,21 @@ def starts_discussed_enquiry(text: str) -> bool:
         re.I,
     ):
         return False
+    # A whole-message affirmative request needs no probabilistic classification.
+    # Keep the reference deictic: the caller must resolve it against this session's
+    # actual discussion and catalogue. Mixed facts, conditions and writes do not fit.
+    if re.fullmatch(
+        r"\s*(?:(?:okay|ok|great|perfect|yes)\s*[,!.]?\s*)?(?:then\s+)?"
+        r"(?:(?:i\s+(?:want|wish|would\s+like)\s+to\s*|"
+        r"i['\u2019]d\s+like\s+to\s*|(?:can|could|may)\s+i\s+|please\s+)"
+        r"(?:make\s+(?:an?|my)\s+)?(?:enquire|enquiry|inquire|inquiry)\s+about\s+|"
+        r"please\s+register\s+my\s+interest\s+in\s+)"
+        r"(?:it|this(?:\s+(?:course|one|option))?|that(?:\s+(?:course|one|option))?)"
+        r"\s*[.!?]*\s*",
+        text,
+        re.I,
+    ):
+        return True
     return bool(
         re.search(r"\b(this course|it)\b", text, re.I)
         and re.search(

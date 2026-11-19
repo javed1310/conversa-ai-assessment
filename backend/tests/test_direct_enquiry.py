@@ -50,7 +50,7 @@ async def test_direct_request_collects_then_saves_without_offer(agent_env, monke
     classify(env, monkeypatch)
     before = len(env.model.requests)
     result = await env.send(text)
-    assert len(env.model.requests) == before + 1
+    assert len(env.model.requests) == before
     assert "name" in result.reply and "phone number" in result.reply
     assert "25000" not in result.reply and "weekdays" not in result.reply
     assert not result.actions
@@ -116,6 +116,9 @@ async def test_unbound_request_cue_is_not_authority(agent_env, monkeypatch, cour
     classify(env, monkeypatch, course_id=course_id, excerpt=excerpt)
     result = await env.send("I want to enquire about it")
     assert "To save your enquiry" not in result.reply
+    assert "name" in result.reply and "phone" in result.reply
+    record = await env.storage.db.sessions.find_one({"session_id": result.session_id})
+    assert record["state"]["fields"]["course_id"] == "DS101"
     assert await env.storage.db.leads.count_documents({}) == 0
 
 
@@ -173,13 +176,20 @@ async def test_redundant_inferred_course_does_not_abort_enquiry(agent_env, monke
         ("budget", "12000", "it"),
     ],
 )
-async def test_enquiry_still_rejects_unsupported_customer_changes(
+async def test_literal_enquiry_does_not_request_or_apply_invented_model_changes(
     agent_env, monkeypatch, field, value, excerpt
 ):
     env = agent_env
     await select_first(env)
     classify(env, monkeypatch)
+    before = len(env.model.requests)
     result = await env.send("i want toenquire about it", changes=[change(field, value, excerpt)])
-    assert "couldn't complete" in result.reply
+    assert len(env.model.requests) == before
+    assert "name" in result.reply and "phone" in result.reply
+    record = await env.storage.db.sessions.find_one({"session_id": result.session_id})
+    fields = record["state"]["fields"]
+    assert fields["course_id"] == "DS101"
+    assert fields["name"] is None and fields["phone"] is None
+    assert fields["budget"] == 30000
     assert not result.actions
     assert await env.storage.db.leads.count_documents({}) == 0

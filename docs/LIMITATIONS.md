@@ -7,6 +7,11 @@
   model/project quota. Output can fail validation; repairs/retries are bounded.
   Evidence-linked wording is checked and has factual/receipt fallbacks, but model
   judgments remain probabilistic and may add latency.
+- Clear, whole-message enquiry requests and separate contact replies use the
+  owned collection workflow without model classification. Broader interpretation,
+  document answers and summary generation still depend on Gemini. Model-backed
+  turns can take tens of seconds during provider degradation; the handoff fix is
+  not a guarantee of low latency or unlimited quota for every message.
 - Windows is qualified. Portable setup commands are provided, but Linux/macOS
   execution is unverified. The optional browser harness uses Windows process paths.
 - External messaging and CRM notifications are local simulations. A saved callback

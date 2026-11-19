@@ -22,13 +22,14 @@ backend suite passed on 19 November 2026; the recorded checks below span
 | Check | Expected | Actual |
 |---|---|---|
 | Backend lint/format/strict types/contracts | Pass | Pass |
-| Backend test suite | All cases pass | 1053 passed in the final clean run |
+| Backend test suite | All cases pass | 1070 passed in the enquiry-handoff fix run |
 | Frontend API/validator/proxy checks | All checks pass | 26 passed |
 | React component interaction tests | All tests pass | 18 passed |
 | Browser integration | All checks pass; no JavaScript exceptions | 22 passed |
 | Frontend lint/types and production build | Pass | Pass |
-| Actual Gemini assessment scenarios | All ten behaviors pass | 10 passed |
-| Final expanded live regression | All twenty scenarios / twenty-four turns pass | 24/24 automatic checks; replies manually reviewed |
+| Actual Gemini assessment scenarios | All ten behaviors pass | 10 passed again in the enquiry-handoff fix retest |
+| Published baseline expanded live regression (historical) | All twenty scenarios / twenty-four turns pass | 24/24 automatic checks; replies manually reviewed |
+| Enquiry-handoff fix live replay | Reported conversation flows pass | 30/30 existing runner turns and 25/25 additional replay turns; replies and records reviewed |
 
 The frontend was installed from its lockfile using `npm ci`. The installed backend
 environment was reused while importing this checkout's source. These are host
@@ -250,7 +251,7 @@ The prior baseline and interrupted attempts were retained privately; they were n
 relabelled as successful runs. Once used for fixes, these cases are regressions,
 not fresh held-out generalization evidence.
 
-The final live run's median API turn time was **4.98 seconds**, excluding deliberate
+The published baseline expanded live run's median API turn time was **4.98 seconds**, excluding deliberate
 pacing. Retrieval covered the expected document for all nine answerable policy
 queries at top-k and after the existing threshold. These are small-sample
 observations, not a universal accuracy, threshold-calibration or latency guarantee.
@@ -280,3 +281,41 @@ Existing locked dependencies were reused while importing this checkout's source.
 This is Windows host verification, not a fresh-OS installation qualification.
 Raw responses, customer/session identifiers and browser captures remain ignored
 local evidence; no application database export or private credentials are submitted.
+
+## Enquiry-handoff fix verification — 19 November 2026
+
+A fresh replay of the published baseline reproduced three incorrect replies: a
+clear enquiry request, its name-only continuation, and an enquiry request after
+a refund answer returned generic unavailable-information text. The fix routes
+clear whole-message requests through the existing owned collection transition.
+It preserves selected-course validation, contact evidence, qualification,
+callback consent and actual write receipts. New controlled-provider regressions
+also block model state extraction and verify that the handoff and separate
+contact collection still complete correctly without calling it.
+
+The complete backend gate passed **1,070 tests**. The existing live dialogue runner
+passed **30/30 turns** with two enquiry-to-callback passes; an additional replay of
+reported customer flows passed **25/25 turns**. The repaired enquiry handoffs took
+approximately **0.06–0.08 seconds**, compared with the baseline's failed
+43–59-second enquiry turns. The first 30-turn replay's observed median was
+**2.05 seconds**. These measurements exclude deliberate pacing and are not a
+general latency guarantee. One original additional-replay check was overly strict:
+a selection-only acknowledgement need not call the details tool or claim current
+facts. Its corrected check requires the actual stored DS202 selection and no
+unrequested enquiry/callback write; the original flagged report was retained.
+
+All **ten live assessment scenarios** passed with actual Gemini and newly embedded
+fictional fixtures. The final run used 30-second message pacing to respect provider
+request limits. Successful enquiry/callback receipts, Leads API callback visibility,
+automatic structured summaries and matching simulated notifications were checked.
+The **22 browser integration checks** passed against the fixed backend and the
+unchanged, previously built frontend. The earlier frontend lint/types/build,
+26 API checks and 18 rendered component tests remain applicable to that unchanged
+frontend. All owned test databases were removed.
+
+Gemini 503s and a deadline occurred and recovered. Some model-backed replies still
+took roughly a minute. The fix removes unnecessary model classification from the
+clear enquiry/contact handoff; it does not remove provider quota or latency from
+RAG, broader interpretation or summaries. These are regression observations using
+cases inspected during fixes, not fresh held-out accuracy evidence. Unfinished
+architecture improvements were excluded from this candidate.
